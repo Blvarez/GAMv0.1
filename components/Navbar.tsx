@@ -13,15 +13,25 @@ export default function ({ usuario }: Props) {
     //@ts-ignore
     const [nuevaImagen, setnuevaImagen] = useState<Blob | null>(null);
 
+    let boton = null;
+    let dondeVaUsuario = null
+
+    if(usuario != null || usuario != undefined || usuario != ""){
+        dondeVaUsuario=(
+            <h1 className="ml-2 text-white font-bold">Usuario: {usuario}</h1>
+        )
+        boton=(
+            <button>Cierre Sesion</button>
+        )
+    }
+    else{
+        <h1 className="ml-2 text-white font-bold"></h1>
+
+    }
+
     return (
         <nav className="bg-[#003352] w-full flex items-center">
-            {usuario != null ? (
-                <h1 className="ml-2 text-white font-bold">Usuario: {usuario}</h1>
-
-            ) : (
-                <h1 className="ml-2 text-white font-bold"></h1>
-            )}
-
+            {dondeVaUsuario}
             <div className="flex items-center mx-auto">
                 {nuevaImagen != null ? (
                     <img src={URL.createObjectURL(nuevaImagen)}></img>

@@ -1,12 +1,18 @@
 //import jwt from "jsonwebtoken";
 import conexion from "../db/conexion";
-import { Request, Response } from "express";
+import conexionFija from "../db/conexionFija";
+//@ts-ignore
+import { query, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import { sign, SignOptions } from "jsonwebtoken";
 //import {serialize} from "cookie";
 
 dotenv.config();
+
+
+
+
 
 //Funcion para verificar sql vacios o con datos 
 
@@ -24,6 +30,10 @@ function contadorArregloSql(arreglo: any) {
 
 }
 
+
+
+
+//GESTION USUARIOS PRINCIPALES MUNICIPALES Y MUNICIPALIDAD
 
 //Obtencion de datos principales
 //@ts-ignore
@@ -45,7 +55,7 @@ exports.obtencionDatosPrincipalesMunicipalidades = async (req: Request, res: Res
 //OBTERNCION DE DATOS DEL SELECT DESDE LA BASE DE DATOS MUNICIPALIDADES
 //@ts-ignore
 exports.obtencionDatosSelectMunicipalidades = async (req: Request, res: Response) => {
-    const obtencioDatosMunicipalidades = "SELECT * FROM municipalidadesdisponibles;";
+    const obtencioDatosMunicipalidades = "SELECT * FROM datamunicipalidad;";
 
     conexion.query(obtencioDatosMunicipalidades, (err, resultadoDatosMunicipalidades) => {
         if (err) { throw err; }
@@ -74,20 +84,40 @@ exports.obtencionDatosSelectDepartamentos = async (req: Request, res: Response) 
 //@ts-ignore
 exports.ingresoMunicipalidad = async (req: Request, res: Response) => {
 
-    //DATOS PARA LAS CREACIONES
+    //DATOS PARA LAS CREACIONES 
     const rutusuarioprincipal: string = req.body.rutusuarioprincipal;
     const contraseniaprincipal: string = req.body.contraseniaprincipal;
-    const nombreusuario : string = req.body.nombreusuarioprincipal;
+    const nombreusuario: string = req.body.nombreusuarioprincipal;
     const hashcontraseniaprincipal: string = await bcrypt.hash(contraseniaprincipal, 10);
-    const nombreBaseMunicipalidad: string = req.body.municipalidad; 
-    const departamentosACrear: number = req.body.departamentos;
+    const nombreBaseMunicipalidad: string = req.body.municipalidad;
+    const departamentosAaCrear: any = req.body.departamentos;
 
 
-    console.log(departamentosACrear, nombreBaseMunicipalidad);
+    console.log(nombreBaseMunicipalidad);
+    console.log(departamentosAaCrear);
 
 
 
-    const creacionBaseDatosNombre: string = "CREATE DATABASE ?;"
+
+    const arregloNumeros = departamentosAaCrear.map((numero: any) => {
+        return parseInt(numero, 10);
+    })
+
+    //@ts-ignore
+    const resultadoSuma: number = arregloNumeros.reduce((acumulador, numero) => acumulador + numero, 0);
+    //@ts-ignore
+    const resultadoResta: number = arregloNumeros.reduce((acumulador, numero) => acumulador - numero, 0);
+    const arregloResultado: number[] = [resultadoSuma, resultadoResta];
+
+    console.log(arregloResultado);
+
+    const departamentosACrear: number = resultadoSuma;
+    console.log(departamentosACrear)
+
+
+
+
+    const creacionBaseDatosNombre: string = `CREATE DATABASE ${nombreBaseMunicipalidad};`
 
     //CONFIRMACION SI EL USUARIO NO EXISTE CON EL MISMO RUT EN OTRA MUNICIPALIDAD
     const confirmacionUsuario: string = "SELECT * FROM usuariosprincipal WHERE rutprincipal = ?;";
@@ -95,37 +125,191 @@ exports.ingresoMunicipalidad = async (req: Request, res: Response) => {
     const ingresoConfirmacionNuevoUsuario: string = "INSERT INTO usuariosprincipal(rutprincipal, nombreprincipal, contraseniaprincipal, valormunicipalidadprincipal, permisosprincipal) VALUES(?,?,?,?, 1000);";
 
     //BUSQUEDA SI LA BASE DE DATOS YA EXISTE
-    const busquedaBasesDeDatos: string = "SELECT * FROM municipalidadescreadas WHERE valormunicipalidadcreada = ?;";
+    const busquedaBasesDeDatos: string = "SELECT * FROM estadomunicipalidad WHERE valormunicipalidadcreada = ?;";
     //CREAMOS UNA NUEVA BASE DE DATOS EN LA TABLA MUNICIPALIDADES CREADAS
-    const baseDatosCreadas: string = "INSERT INTO municipalidadescreadas(valormunicipalidadcreadas, departamentosmunicipalidadcreada) VALUES(?, ?);";
+    const baseDatosCreadas: string = "INSERT INTO estadomunicipalidad(valormunicipalidadcreada, departamentosmunicipalidadcreada, estadoMunicipalidad) VALUES(?, ?, 1);";
 
     //A CONTINUACION ESTARAN TODOS LOS SCHEMAS PARA CREACION DE LA BASE DE DATOS MUNICIPALES 
 
     //USAMOS LA BASE DE DATOS A ESPECIFICAS
-    const usarBaseDeDatosMunicipal: string = "USE ?; "
+    const usarBaseDeDatosMunicipal: string = `USE ${nombreBaseMunicipalidad};`;
+
+
     //QUERY CREACION DE LAS PRINCIPALES  TABLAS DE LA BASE DE DATOS
-    const crearBaseDeDatosPrincipalMunicipal: string = "CREATE TABLE usuariomunicipal(rutusuario varchar(10) Primary Key, nombrecompletousuario varchar(50), contrasenia varchar(60), permisosusuario int, departamentousuario int, direccionusuario varchar(100), telefonousuario int ,correousuario varchar(100)); CREATE TABLE permisos(idpermiso int Primary Key, nombrepermiso varchar(50), descripcionpermiso longtext, puntuacionpermiso int); CREATE TABLE persona(rutpersona varchar(10) Primary Key, nombres varchar(36), apellidos varchar(36), edadpersona int, direccionpersona varchar(100), telefonopersona int, correopersona varchar(100));";
-    //CREAMOS EL SCHEMA PARA LA CREACION DEL DEPARTAMENTO DE DIDECO
-    const crearSchemaDideco: string = "CREATE SCHEMA departamentodidecogestionbeneficios;";
-    //NOS CAMBIAMOS AL SCHEMA DEL DEPARTAMENTO DE DIDECO
-    const usarschemaDideco: string = "USE departamentodidecogestionbeneficios;";
-    //CREAMOS LA BASE DE DATOS DEL DEPARTAMENTO DE DIDECO
-    const crearBaseDeDatosDideco: string = "CREATE TABLE tipobeneficio(idtipobeneficio int Primary Key, nombreBeneficio varchar(50), incialestipobeneficio varchar(4), tipotiempobeneficio int); CREATE TABLE beneficio(idbeneficio varchar(9) Primary Key, tipobeneficiobeneficio int , descripcionbeneficio longtext, estadoobtencion varchar(45), stockbeneficio int, cantidadanualentrega int); CREATE TABLE beneficiario(rutbeneficiario varchar(10) Primary Key, porcentajerhbeneficiario int, nombrepdf varchar(100), typepdf varchar(100), archivopdf blob); CREATE TABLE tipoclavesoperaciones(idtipoclave int Primary Key, nombretipoclave varchar(50)); INSERT INTO tipoclavesoperaciones(idtipoclave, nombretipoclave) VALUES(1, 'Para Eliminaciones');INSERT INTO tipoclavesoperaciones(idtipoclave, nombretipoclave) VALUES(2, 'Para Entregas');INSERT INTO tipoclavesoperaciones(idtipoclave, nombretipoclave) VALUES(3, 'Para Informes') ;CREATE TABLE clavesoperacion(idclavesoperacion int Primary Key AUTO_INCREMENT, tipoclaveoperacion int, claveoperacion varchar(60); CREATE TABLE solicitudes(idsolicitud int Primary Key AUTO_INCREMENT, rutbeneficiariosol varchar(10), idbeneficiosol varchar(9), estadosol varchar(45), fechacreacionsol date, fechafinalsol date, observacionsol longtext); CREATE TABLE tiposeliminacionesoacciones(idtipoeliminacionaccion int Primary Key, nombretipoeliminacionaccion varchar(50)); INSERT INTO tiposeliminacionesoacciones(idtipoeliminacionaccion, nombretipoeliminacionaccion) VALUES(1, 'beneficiario'); INSERT INTO tiposeliminacionesoacciones(idtipoeliminacionaccion, nombretipoeliminacionaccion) VALUES(2, 'beneficio'); INSERT INTO tiposeliminacionesoacciones(idtipoeliminacionaccion, nombretipoeliminacionaccion) VALUES(3, 'solicitud'); CREATE TABLE respaldoeliminaciones(idrespaldoeliminada int Primary Key AUTO_INCREMENT, ideliminado varchar(9), idtiposeliminacionesoacciones int, motivoeliminacion longtext, usuarioeliminando varchar(10)); CREATE TABLE acciones(idaccion int PRIMARY KEY, nombreaccion varchar(20)); INSERT INTO acciones(idaccion, nombreaccion) VALUES(1, 'AGREGAR'); INSERT INTO acciones(idaccion, nombreaccion) VALUES(2, 'MODIFICAR'); INSERT INTO acciones(idaccion, nombreaccion) VALUES(3, 'ELIMINAR'); CREATE TABLE historial(idhistorial int Primary Key AUTO_INCREMENT, idacciones int, idtiposeliminacionesoacciones int, idaccionada varchar(9), rutusuarioaccion varchar(10);";
-    //CREAMOS EL SCHEMA DEL DEPARTAMENTO FALSO 1
-    const crearSchemaFalso1: string = "CREATE SCHEMA departamentofalso1;";
-    //NOS CAMBIAMOS AL SCHEMA NUEVO DEL DEPARTAMENTO FALSO 1
-    const usarSchemafalso1: string = "USE departamentofalso1;";
+    const crearBaseDeDatosPrincipalMunicipalParte1: string = "CREATE TABLE usuariomunicipal(rutusuario varchar(10) PRIMARY KEY, nombrecompletousuario varchar(50), permisosusuario int, departamentousuario int, direccionusuario varchar(100), telefonousuario int ,correousuario varchar(100)); ";
+    const crearBaseDeDatosPrincipalMunicipalParte2: string = "CREATE TABLE permisos(idpermiso int PRIMARY KEY, nombrepermiso varchar(50), descripcionpermiso LONGTEXT, puntuacionpermiso int);";
+    const crearBaseDeDatosPrincipalMunicipalParte3: string = "CREATE TABLE persona(rutpersona varchar(10) PRIMARY KEY, nombrecompleto varchar(120), edadpersona int, direccionpersona varchar(100), telefonopersona int, correopersona varchar(100));";
+
+
+
+    //AQUI PARA ADELANTE ES LA CREACION PARA EL DEPARTAMENTO DE DIDECO
+
+    const crearTipoBeneficio = "CREATE TABLE tipobeneficio(idtipobeneficio int Primary Key, nombreBeneficio varchar(50), incialestipobeneficio varchar(4), cantidadAnualPersona int);"
+
+    const crearBeneficio = "CREATE TABLE beneficio(idbeneficio varchar(9) Primary Key, tipobeneficiobeneficio int , descripcionbeneficio longtext, estadoobtencion varchar(45), stockbeneficio int, cantidadanualentrega int);"
+
+    const crearBeneficiario = "CREATE TABLE beneficiario(rutbeneficiario varchar(10) Primary Key, porcentajerhbeneficiario int, nombrepdf varchar(100), typepdf varchar(100), archivopdf blob);"
+
+
+    const crearClavesOperaciones = "CREATE TABLE clavesoperacion(idclavesoperacion int Primary Key, tipoclaveoperacion varchar(36), claveoperacion varchar(60));"
+    //TIPOS CLAVES = INFORMES, ENTREGAS, ELIMINACIONES
+
+    const crearSolicitudes = "CREATE TABLE solicitudes(idsolicitud int Primary Key AUTO_INCREMENT, rutbeneficiariosol varchar(10), idbeneficiosol varchar(9), estadosol varchar(45), fechacreacionsol date, fechafinalsol date, observacionsol longtext);"
+
+    const crearRespaldoEliminaciones = "CREATE TABLE respaldoeliminaciones(idrespaldoeliminada int Primary Key AUTO_INCREMENT, ideliminado varchar(9), idtiposeliminacionesoacciones varchar(30), motivoeliminacion longtext, usuarioeliminando varchar(10));"
+    //TIPOS = BENEFICIO, BENEFICIARIO, SOLICITUD)
+
+    const crearHistorial = "CREATE TABLE historial(idhistorial int Primary Key AUTO_INCREMENT, accion varchar(40), idaccionada varchar(9), tipo varchar(25), rutusuarioaccion varchar(10));"
+    //ACCION = AGREGAR, ELIMINAR, MODIFICAR;
+    //TIPOS = BENEFICIO, BENEFICIARIO, SOLICITUD
+
+
+
+
+
     //CREAMOS LA BASE DE DATOS DEL DEPARTAMENTO FALSO 1
     const crearBaseDatosfalso1: string = "CREATE TABLE departamentofalso11(idfalso1 int Primary Key AUTO_INCREMENT, palabrarandomfalso1 varchar(200));";
-    //CREAMOS EL SCHEMA DEL DEPARTAMENTO FALSO 2
-    const crearschemaFalso2: string = "CREATE SCHEMA departamento falso2;";
-    //NOS CAMBIAMOS AL SCHEMA NUEVO DEL DEPARTAMENTO FALSO 2
-    const usarSchemafalso2: string = "USE departamentofalso2;";
+
     //CREAMOS LA BASE DE DATOS DEL DEPARTAMENTO FALSO 2
     const crearBaseDatosfalso2: string = "CREATE TABLE departamentofalso22(idfalso2 int Primary Key AUTO_INCREMENT, palabrarandomfalso2 varchar(200));";
 
     //VOLVIENDO A LA BASE DE DATOS PRINCIPAL GAM
     const volviendoPrincipal: string = "USE GAM;";
+
+
+
+
+
+    function creacionDideco() {
+        //@ts-ignore
+        conexion.query(crearTipoBeneficio, (err30, crearTipBeneficio) => {
+            if (err30) { throw err30; }
+            else {
+                //@ts-ignore
+                conexion.query(crearBeneficio, (err31, crearBenefici) => {
+                    if (err31) { throw err31; }
+                    else {
+                        //@ts-ignore
+                        conexion.query(crearBeneficiario, (err32, crearBeneficiari) => {
+                            if (err32) { err32; }
+                            else {
+
+                                //@ts-ignore
+                                conexion.query(crearClavesOperaciones, (err37, crearClavesOperacione) => {
+                                    if (err37) { throw err37; }
+                                    else {
+                                        //@ts-ignore
+                                        conexion.query(crearSolicitudes, (err38, crearSolicitude) => {
+                                            if (err38) { throw err38; }
+                                            else {
+                                                //@ts-ignore
+                                                conexion.query(crearHistorial, (err48, crearHistoria) => {
+                                                    if (err48) { throw err48; }
+                                                    else {
+                                                        //@ts-ignore
+                                                        conexion.query(crearRespaldoEliminaciones, (err36, creandoRespaldos) => {
+                                                            if (err36) { throw err36; }
+                                                            else {
+                                                                //@ts-ignore
+                                                                conexion.query(volviendoPrincipal, (err9, volviendo) => {
+                                                                    if (err9) { throw err9; }
+                                                                    else {
+                                                                        console.log("vuelta")
+                                                                        const msj: string = "CBDM";
+                                                                        res.json({ message: msj })
+                                                                    }
+                                                                })
+                                                            }
+                                                        })
+
+                                                    }
+                                                })
+                                            }
+                                        })
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    }
+
+
+
+    function creacionDepartamentoFalso1() {
+        //@ts-ignore
+        conexion.query(crearBaseDatosfalso1, (err8, creandoBaseFalso1) => {
+            if (err8) { throw err8; }
+            else {
+                console.log("Se ha creado el departamento falso 1 con exito")
+            }
+        })
+    }
+
+    function creacionDepartamentoFalso2() {
+
+        //@ts-ignore
+        conexion.query(crearBaseDatosfalso2, (err8, creandoBaseFalso2) => {
+            if (err8) { throw err8; }
+            else {
+
+                console.log("Se ha creado el departamento falso 2 con exito")
+
+            }
+        })
+    }
+
+
+    function vueltaPrincipal() {
+        //@ts-ignore
+        conexion.query(volviendoPrincipal, (err9, volviendo) => {
+            if (err9) { throw err9; }
+            else {
+                console.log("vuelta")
+                const msj: string = "CBDM";
+                res.json({ message: msj })
+            }
+        })
+    }
+
+
+
+
+
+
+    async function crearDepartamentos() {
+        try {
+            if (departamentosACrear == 100 || departamentosACrear >= 30) {
+                await creacionDepartamentoFalso1();
+                await creacionDepartamentoFalso2();
+                await creacionDideco();
+            } else if (departamentosACrear == 3) {
+                await creacionDideco();
+            } else if (departamentosACrear == 10) {
+                await creacionDepartamentoFalso1();
+                await vueltaPrincipal();
+            } else if (departamentosACrear == 17) {
+                await creacionDepartamentoFalso2();
+                await vueltaPrincipal();
+            } else if (departamentosACrear == 13) {
+                await creacionDepartamentoFalso1();
+                await creacionDideco();
+            } else if (departamentosACrear == 20) {
+                await creacionDepartamentoFalso2();
+                await creacionDideco();
+            } else if (departamentosACrear == 27) {
+                await creacionDepartamentoFalso1();
+                await creacionDepartamentoFalso2();
+                await vueltaPrincipal();
+            }
+        } catch (error) {
+            console.error("Error en la creación de departamentos:", error);
+        } finally {
+            console.log("Termino de Codigo");
+        }
+    }
 
 
 
@@ -151,365 +335,42 @@ exports.ingresoMunicipalidad = async (req: Request, res: Response) => {
                                 else {
 
                                     //@ts-ignore
-                                    conexion.query(creacionBaseDatosNombre, [nombreBaseMunicipalidad], (err4, creacion) => { //CREAMOS LA BASE DE DATOS MUNICIPAL NUEVA
+                                    conexion.query(creacionBaseDatosNombre, (err4, creacion) => { //CREAMOS LA BASE DE DATOS MUNICIPAL NUEVA
                                         if (err4) { throw err4; }
 
                                         else {
                                             //@ts-ignore
-                                            conexcion.query(usarBaseDeDatosMunicipal, [nombreBaseMunicipalidad], (err5, usandoBaseDatosMunicipal) => {
+                                            conexion.query(usarBaseDeDatosMunicipal, (err5, usandoBaseDatosMunicipal) => {
                                                 if (err5) { throw err5; }
                                                 else {
                                                     //@ts-ignore
-                                                    conexion.query(crearBaseDeDatosPrincipalMunicipal, (err6, creandoBaseDatosMunicipalTablas) => {
+                                                    conexion.query(crearBaseDeDatosPrincipalMunicipalParte1, (err6, creandoBaseDatosMunicipalTablas1) => {
                                                         if (err6) { throw err6; }
                                                         else {
+                                                            //@ts-ignore
+                                                            conexion.query(crearBaseDeDatosPrincipalMunicipalParte2, (err20, creandoBaseDatosMunicipalTablas2) => {
+                                                                if (err20) { throw err20; }
+                                                                else {
+                                                                    //@ts-ignore
+                                                                    conexion.query(crearBaseDeDatosPrincipalMunicipalParte3, (err21, creandoBaseDatosMunicipalTablas3) => {
+                                                                        if (err21) { throw err21; }
+                                                                        else {
+
+                                                                            crearDepartamentos();
+
+                                                                        }
+                                                                    })
+                                                                }
+                                                            })
+
+
 
                                                         }
                                                     })
                                                 }
                                             })
 
-                                            if (departamentosACrear == 100 || departamentosACrear >= 30) { //TODOS LOS DEPARTAMENTOS
 
-                                                console.log("Se creara la base de datos con todos los departamentos;")
-
-                                                //@ts-ignore
-                                                conexion.query(crearSchemaDideco, (err7, creandoGrupoDideco) => { //CREAMOS EL APARTADO PARA EL DEPARTAMENTO DIDECO EL SCHEMA
-                                                    if (err7) { throw err7; }
-                                                    else {
-                                                        //@ts-ignore
-                                                        conexion.query(usarschemaDideco, (err8, usandoGrupoDideco) => {
-                                                            if (err8) { throw err8; }
-                                                            else {
-                                                                //@ts-ignore
-                                                                conexion.query(crearBaseDeDatosDideco, (err9, creandoBaseDatosDideco) => {
-                                                                    if (err9) { throw err9; }
-                                                                    else {
-                                                                        //@ts-ignore
-                                                                        conexion.query(usarBaseDeDatosMunicipal, [nombreBaseMunicipalidad], (err10, volviendoPrincipalMunicipal) => {
-                                                                            if (err10) { throw err10; }
-                                                                            else {
-                                                                                //@ts-ignore
-                                                                                conexion.query(crearSchemaFalso1, (err11, creandoGrupoFalso1) => {
-                                                                                    if (err11) { throw err11; }
-                                                                                    else {
-                                                                                        //@ts-ignore
-                                                                                        conexion.query(usarSchemafalso1, (err12, usandoGrupoFalso1) => {
-                                                                                            if (err12) { throw err12; }
-                                                                                            else {
-                                                                                                //@ts-ignore
-                                                                                                conexion.query(crearBaseDatosfalso1, (err13, creandoBaseDatosFalso1) => {
-                                                                                                    if (err13) { throw err13; }
-                                                                                                    else {
-                                                                                                        //@ts-ignore
-                                                                                                        conexion.query(usarBaseDeDatosMunicipal, [nombreBaseMunicipalidad], (err14, volviendoPrincipalMunicipal2) => {
-                                                                                                            if (err14) { throw err14; }
-                                                                                                            else {
-                                                                                                                //@ts-ignore
-                                                                                                                conexion.query(crearschemaFalso2, (err15, creandoGrupoFalso2) => {
-                                                                                                                    if (err15) { throw err15; }
-                                                                                                                    else {
-                                                                                                                        //@ts-ignore
-                                                                                                                        conexion.query(usarSchemafalso2, (err16, usandoGrupoFalso2) => {
-                                                                                                                            if (err16) { throw err16; }
-                                                                                                                            else {
-                                                                                                                                //@ts-ignore
-                                                                                                                                conexion.query(crearBaseDatosfalso2, (err17, creandoBaseDatosFalso2) => {
-                                                                                                                                    if (err17) { throw err17; }
-                                                                                                                                    else {
-                                                                                                                                        //@ts-ignore
-                                                                                                                                        conexion.query(volviendoPrincipal, (err18, volviendoPrincipalPrincipal) => {
-                                                                                                                                            if (err18) { throw err18; }
-                                                                                                                                            else {
-                                                                                                                                                console.log("Se ha creado exitosamente la nueva base de datos de la municipalidad: ", nombreBaseMunicipalidad);
-                                                                                                                                            }
-                                                                                                                                        })
-                                                                                                                                    }
-                                                                                                                                })
-                                                                                                                            }
-                                                                                                                        })
-                                                                                                                    }
-                                                                                                                })
-                                                                                                            }
-
-                                                                                                        })
-                                                                                                    }
-                                                                                                })
-                                                                                            }
-                                                                                        })
-                                                                                    }
-                                                                                })
-                                                                            }
-                                                                        })
-                                                                    }
-                                                                })
-                                                            }
-                                                        })
-                                                    }
-                                                })
-
-
-
-
-                                            }
-
-                                            if (departamentosACrear == 3) {
-
-                                                console.log("Se creara solo el departamento de Dideco (Gestion de Beneficios)");
-                                                //@ts-ignore
-                                                conexion.query(crearSchemaDideco, (err7, creandoGrupoDideco) => {
-                                                    if (err7) { throw err7; }
-                                                    else {
-                                                        //@ts-ignore
-                                                        conexion.query(usarschemaDideco, (err8, usandoDideco) => {
-                                                            if (err8) { throw err8; }
-                                                            else {
-                                                                //@ts-ignore
-                                                                conexion.query(crearBaseDeDatosDideco, (err9, creandoDideco) => {
-                                                                    if (err9) { throw err9; }
-                                                                    else {
-                                                                        //@ts-ignore
-                                                                        conexion.query(volviendoPrincipal, (err10, volviendoPrincipalPrincipal) => {
-                                                                            if (err10) { throw err10; }
-                                                                            else {
-                                                                                console.log("Creacion completa de la municipalidad solo con el departamento de dideco;")
-                                                                            }
-                                                                        })
-                                                                    }
-                                                                })
-                                                            }
-                                                        })
-                                                    }
-                                                })
-
-
-                                            }
-
-                                            if (departamentosACrear == 10) {
-
-                                                console.log("Se creara el primer departamento falso")
-                                                //@ts-ignore
-                                                conexion.query(crearSchemaFalso1, (err6, creandoSchemaFalso1) => {
-                                                    if (err6) { throw err6 }
-                                                    else {
-                                                        //@ts-ignore
-                                                        conexion.query(usarSchemafalso1, (err7, usarSchemaFalso1) => {
-                                                            if (err7) { throw err7; }
-                                                            else {
-                                                                //@ts-ignore
-                                                                conexion.query(crearBaseDatosfalso1, (err8, creandoBaseFalso1) => {
-                                                                    if (err8) { throw err8; }
-                                                                    else {
-                                                                        //@ts-ignore
-                                                                        conexion.query(volviendoPrincipal, (err9, volviendo) => {
-                                                                            if (err9) { throw err9; }
-                                                                            else {
-                                                                                console.log("Creacion base de datos con exito junto al departamento falso 1;")
-                                                                            }
-                                                                        })
-                                                                    }
-                                                                })
-                                                            }
-                                                        })
-                                                    }
-                                                })
-
-
-
-                                            }
-
-                                            if (departamentosACrear == 17) {
-
-                                                console.log("Se creara el segundo departamento falso");
-                                                //@ts-ignore
-                                                conexion.query(crearschemaFalso2, (err6, creandoSchemaFalso2) => {
-                                                    if (err6) { throw err6; }
-                                                    else {
-                                                        //@ts-ignore
-                                                        conexion.query(usarSchemafalso2, (err7, usandoSchemaFalso2) => {
-                                                            if (err7) { throw err7; }
-                                                            else {
-                                                                //@ts-ignore
-                                                                conexion.query(crearBaseDatosfalso2, (err8, creandoBaseFalso2) => {
-                                                                    if (err8) { throw err8; }
-                                                                    else {
-                                                                        //@ts-ignore
-                                                                        conexion.query(volviendoPrincipal, (err9, volviendo) => {
-                                                                            if (err9) { throw err9; }
-                                                                            else {
-                                                                                console.log("Creacion completa de la base de datos junto al departamento falso 2;")
-                                                                            }
-                                                                        })
-                                                                    }
-                                                                })
-                                                            }
-                                                        })
-                                                    }
-                                                })
-
-
-                                            }
-
-                                            if (departamentosACrear == 13) {
-
-                                                console.log("Se creara el primer departamento falso y departamentod de dideco");
-                                                //@ts-ignore
-                                                conexion.query(crearSchemaDideco, (err7, creandoGrupoDideco) => {
-                                                    if (err7) { throw err7; }
-                                                    else {
-                                                        //@ts-ignore
-                                                        conexion.query(crearBaseDeDatosDideco, (err8, crearBaseDideco) => {
-                                                            if (err8) { throw err8; }
-                                                            else {
-                                                                //@ts-ignore
-                                                                conexion.query(usarBaseDeDatosMunicipal, [nombreBaseMunicipalidad], (err9, volviendoPrincipalMunicipal) => {
-                                                                    if (err9) { throw err9; }
-                                                                    else {
-                                                                        //@ts-ignore
-                                                                        conexion.query(crearSchemaFalso1, (err10, creandoGrupoFalso1) => {
-                                                                            if (err10) { throw err10; }
-                                                                            else {
-                                                                                //@ts-ignore
-                                                                                conexion.query(usarSchemafalso1, (err11, usarFalso1) => {
-                                                                                    if (err11) { throw err11; }
-                                                                                    else {
-                                                                                        //@ts-ignore
-                                                                                        conexion.query(crearBaseDatosfalso1, (err12, crearDatosFalso1) => {
-                                                                                            if (err12) { throw err12; }
-                                                                                            else {
-                                                                                                //@ts-ignore
-                                                                                                conexion.query(volviendoPrincipal, (err13, usarPrincipalPrincipal) => {
-                                                                                                    if (err13) { throw err13; }
-                                                                                                    else {
-                                                                                                        console.log("Creacion completa de los departamentos de Dideco y Falso 1;")
-                                                                                                    }
-                                                                                                })
-                                                                                            }
-                                                                                        })
-                                                                                    }
-                                                                                })
-                                                                            }
-                                                                        })
-                                                                    }
-                                                                })
-                                                            }
-                                                        })
-                                                    }
-                                                })
-
-                                            }
-
-                                            if (departamentosACrear == 20) {
-
-                                                console.log("Se creara el segundo departamento falso y departamento de dideco");
-                                                //@ts-ignore
-                                                conexion.query(crearSchemaDideco, (err7, creandoGrupoDideco) => {
-                                                    if (err7) { throw err7; }
-                                                    else {
-                                                        //@ts-ignore
-                                                        conexion.query(usarschemaDideco, (err8, usandoGrupoDideco) => {
-                                                            if (err8) { throw err8; }
-                                                            else {
-                                                                //@ts-ignore
-                                                                conexion.query(crearBaseDeDatosDideco, (err9, creandoDideco) => {
-                                                                    if (err9) { throw err9; }
-                                                                    else {
-                                                                        //@ts-ignore
-                                                                        conexion.query(usarBaseDeDatosMunicipal, [nombreBaseMunicipalidad], (err10, volviendoMunicipal) => {
-                                                                            if (err10) { throw err10; }
-                                                                            else {
-                                                                                //@ts-ignore
-                                                                                conexion.query(crearschemaFalso2, (err11, creandoGrupoFalso2) => {
-                                                                                    if (err11) { throw err11; }
-                                                                                    else {
-                                                                                        //@ts-ignore
-                                                                                        conexion.query(usarSchemafalso2, (err12, usarFalso2) => {
-                                                                                            if (err12) { throw err12; }
-                                                                                            else {
-                                                                                                //@ts-ignore
-                                                                                                conexion.query(crearBaseDatosfalso2, (err13, crearBaseFalso2) => {
-                                                                                                    if (err13) { throw err13; }
-                                                                                                    else {
-                                                                                                        //@ts-ignore
-                                                                                                        conexion.query(volviendoPrincipal, (err14, volviendoPrincipalPrincipal) => {
-                                                                                                            if (err14) { throw err14; }
-                                                                                                            else {
-                                                                                                                console.log("Creacion de la base de datos con los departamentos de Dideco y Falso 2;")
-                                                                                                            }
-                                                                                                        })
-                                                                                                    }
-                                                                                                })
-                                                                                            }
-                                                                                        })
-                                                                                    }
-                                                                                })
-                                                                            }
-                                                                        })
-                                                                    }
-                                                                })
-                                                            }
-                                                        })
-                                                    }
-                                                })
-
-
-                                            }
-
-                                            if (departamentosACrear == 27) {
-
-                                                console.log("Creando la Base De Datos junto a los Departamentos Falso 1 y Falso 2;")
-                                                //@ts-ignore
-                                                conexion.query(crearSchemaFalso1, (err7, crearGrupoFalso1) => {
-                                                    if (err7) { throw err7; }
-                                                    else {
-                                                        //@ts-ignore
-                                                        conexion.query(usarSchemafalso1, (err8, usarFalso1) => {
-                                                            if (err8) { throw err8; }
-                                                            else {
-                                                                //@ts-ignore
-                                                                conexion.query(crearBaseDatosfalso1, (err9, creandoBasoFalso1) => {
-                                                                    if (err9) { throw err9; }
-                                                                    else {
-                                                                        //@ts-ignore
-                                                                        conexion.query(usarBaseDeDatosMunicipal, [nombreBaseMunicipalidad], (err10, volviendoPrincipalMunicipal) => {
-                                                                            if (err10) { throw err10; }
-                                                                            else {
-                                                                                //@ts-ignore
-                                                                                conexion.query(crearschemaFalso2, (err11, crearSchemaFalso2) => {
-                                                                                    if (err11) { throw err11; }
-                                                                                    else {
-                                                                                        //@ts-ignore
-                                                                                        conexion.query(usarSchemafalso2, (err12, usarSchemaFalso2) => {
-                                                                                            if (err12) { throw err12; }
-                                                                                            else {
-                                                                                                //@ts-ignore
-                                                                                                conexion.query(crearBaseDatosfalso2, (err13, creandoBasoFalso2) => {
-                                                                                                    if (err13) { throw err13; }
-                                                                                                    else {
-                                                                                                        //@ts-ignore
-                                                                                                        conexion.query(volviendoPrincipal, (err14, volviendoPrincipalPrincipal) => {
-                                                                                                            if (err14) { throw err14; }
-                                                                                                            else {
-                                                                                                                console.log("Se ha creado la base de datos con los departamentos Falso 1 y Falso 2;")
-                                                                                                            }
-                                                                                                        })
-                                                                                                    }
-                                                                                                })
-                                                                                            }
-                                                                                        })
-                                                                                    }
-                                                                                })
-                                                                            }
-                                                                        })
-                                                                    }
-                                                                })
-                                                            }
-                                                        })
-                                                    }
-                                                })
-
-
-                                            }
 
                                         }
                                     })
@@ -518,6 +379,7 @@ exports.ingresoMunicipalidad = async (req: Request, res: Response) => {
                         }
                         if (cantidadBaseDatos > 0) {
                             console.log("Aqui hay que poner que la base de datos ya fue creada y si es que quiera modificar la cantidad de departamentos que se le brindan.")
+
                         }
 
                     })
@@ -526,9 +388,12 @@ exports.ingresoMunicipalidad = async (req: Request, res: Response) => {
         }
         if (cantidadUsuarios > 0) {
             console.log("Aqui hay que poner que devuelva un valor que indique que el usuario ya existe por lo cual despliega una alerta o ventana modal.")
+            const msj: string = "CBDE";
+            res.json({ message: msj })
         }
 
     })
+
 }
 
 //@ts-ignore
@@ -541,7 +406,8 @@ exports.inicioSesion = async (req: Request, res: Response) => {
     const iniciarConexionBaseDatos: string = "USE ??;"
     const busquedaInformacionUsuarioMunicipal: string = "SELECT * FROM usuariomunicipal WHERE rutusuario = ?;";
     const busquedaInformacionUsuarioPrinciap: string = "SELECT * FROM usuariosprincipal WHERE rutprincipal = ?;"
-    const busquedaInformacionMunicipalidad: string = "SELECT * FROM municipalidadescreadas WHERE valormunicipalidadcreada = ?;";
+    const busquedaInformacionMunicipalidad: string = "SELECT * FROM estadomunicipalidad WHERE valormunicipalidadcreada = ?;";
+    const nombreMunicipalidad: string = "SELECT * FROM datamunicipalidad WHERE valormunicipalidad = ?";
 
     conexion.query(existenciaUsuario, [rut], (err1, cantidad) => {
         if (err1) { throw err1; }
@@ -554,7 +420,7 @@ exports.inicioSesion = async (req: Request, res: Response) => {
 
             console.log("El usuario se ha encontrado")
             const datos = cantidad[0];
-            console.log(datos);
+            console.log(datos, "Estos son los datos de la municipalidad");
             const municipalidad: string = datos.valormunicipalidadprincipal;
             console.log(municipalidad);
             const contraseniaAlmacenada: string = datos.contraseniaprincipal;
@@ -566,8 +432,43 @@ exports.inicioSesion = async (req: Request, res: Response) => {
 
                 if (resultadoContrasenias) {
                     console.log("Contrasenia es valida")
-                    if (valorPermisos == 1000) {
-                        console.log("El que esta ingresando es un administrador de la aplicacion");
+                    if (municipalidad == "principal" || municipalidad == "principalprincipal") {
+                        const princi: string = "GAM";
+                        //@ts-ignore
+                        conexion.query(iniciarConexionBaseDatos, [princi], (err4, conectando) => {
+                            if (err4) { throw err4; }
+                            conexion.query(busquedaInformacionUsuarioPrinciap, [rut], (err5, busquedaUsuario) => {
+                                if (err5) { throw err5; }
+                                const datosNuevos = busquedaUsuario[0];
+                                console.log(datosNuevos);
+                                const nombreGuardar: string = datosNuevos.nombrePrincipal;
+                                const rutGuardar: string = datosNuevos.rutprincipal;
+                                const permisosGuardar: number = datosNuevos.permisosprincipal;
+                                const nombreMunicipalidad: string = municipalidad;
+
+                                const informacionGuardar = { nombreG: nombreGuardar, rutG: rutGuardar, permisosG: permisosGuardar, nombreMunicipalidadG: nombreMunicipalidad };
+
+                                const cookieOpciones: SignOptions = {
+                                    expiresIn: '3h',
+                                    algorithm: 'HS256'
+                                };
+
+                                const claveSecreta = process.env.COOKIE_CLAVE;
+                                if (!claveSecreta) {
+                                    console.log("Error en clave secreta");
+                                }
+                                else {
+                                    const firmaCookie = sign(informacionGuardar, claveSecreta, cookieOpciones);
+
+                                    console.log(firmaCookie);
+
+                                    res.cookie("muni", firmaCookie, { httpOnly: false, maxAge: 3600000 });
+                                    const mensajeEntreda: string = "EP";
+                                    res.json({ mensaje: mensajeEntreda });
+                                }
+                            })
+
+                        })
                     }
                     else {
                         //@ts-ignore
@@ -575,98 +476,357 @@ exports.inicioSesion = async (req: Request, res: Response) => {
                             if (err3) { throw err3; }
                             else {
                                 const datosMunicipales = informacionMunicipalidad[0];
-                                console.log(datosMunicipales);
-                                if (municipalidad == "principal" || municipalidad == "principalprincipal") {
-                                    const princi: string = "GAM";
-                                    //@ts-ignore
-                                    conexion.query(iniciarConexionBaseDatos, [princi], (err4, conectando) => {
-                                        if (err4) { throw err4; }
-                                        conexion.query(busquedaInformacionUsuarioPrinciap, [rut], (err5, busquedaUsuario) => {
-                                            if (err5) { throw err5; }
-                                            const datosNuevos = busquedaUsuario[0];
-                                            console.log(datosNuevos);
-                                            const nombreGuardar: string = datosNuevos.nombrePrincipal;
-                                            const rutGuardar: string = datosNuevos.rutprincipal;
-                                            const permisosGuardar: number = datosNuevos.permisosprincipal;
-                                            const nombreMunicipalidad: string = municipalidad;
-                                         
-                                            const informacionGuardar = { nombreG: nombreGuardar, rutG: rutGuardar, permisosG: permisosGuardar, nombreMunicipalidadG: nombreMunicipalidad };
+                                const estadoMunicipal = datosMunicipales.estadoMunicipalidad;
 
-                                            const cookieOpciones: SignOptions = {
-                                                expiresIn: '3h',
-                                                algorithm: 'HS256'
-                                            };
+                                if (estadoMunicipal == 1) { //MUNICIPALIDA DESBLOQUEADA
+                                    conexion.query(nombreMunicipalidad, [municipalidad], (err23, informacionNombreMuni) => {
+                                        if (err23) { throw err23; }
+                                        else {
+                                            const nombreMunicipalidad = informacionNombreMuni[0].nombremunicipalidad;
 
-                                            const claveSecreta = process.env.COOKIE_CLAVE;
-                                            if (!claveSecreta) {
-                                                console.log("Error en clave secreta");
+
+
+                                            const nombreM = nombreMunicipalidad;
+
+
+                                            if (valorPermisos == 1000) {
+                                                conexion.query(busquedaInformacionUsuarioPrinciap, [rut], (err4, busquedaUsuario) => {
+                                                    if (err4) { throw err4; }
+                                                    //@ts-ignore
+                                                    conexion.query(iniciarConexionBaseDatos, [municipalidad], (err5, conectando) => {
+                                                        if (err5) { throw err5; }
+                                                        const datosNuevos = busquedaUsuario[0];
+                                                        console.log(datosNuevos, "Estos son los datos nuevos");
+                                                        const nombreGuardar = datosNuevos.nombrePrincipal;
+                                                        const rutGuardar: string = datosNuevos.rutprincipal;
+                                                        const permisosGuardar: number = datosNuevos.permisosprincipal;
+                                                        const departamentoGuardar: number = datosMunicipales.departamentosmunicipalidadcreada;
+                                                        const nombreMunicipalidad: string = municipalidad;
+                                                        /*                                         const departamentosEnLaMunicipalidad: number = departamentosMunicipales;
+                                                         */
+                                                        const informacionGuardar = { nombreMuniG: nombreM, nombreG: nombreGuardar, rutG: rutGuardar, permisosG: permisosGuardar, departamentoG: departamentoGuardar, nombreMunicipalidadG: nombreMunicipalidad };
+
+                                                        console.log(informacionGuardar);
+                                                        const cookieOpciones: SignOptions = {
+                                                            expiresIn: '3h',
+                                                            algorithm: 'HS256'
+                                                        };
+
+                                                        const claveSecreta = process.env.COOKIE_CLAVE;
+                                                        if (!claveSecreta) {
+                                                            console.log("Error en clave secreta");
+                                                        }
+                                                        else {
+                                                            const firmaCookie = sign(informacionGuardar, claveSecreta, cookieOpciones);
+
+                                                            res.cookie("muni", firmaCookie, { httpOnly: false, maxAge: 3600000, secure: false });
+                                                            const mensajeEntrada: string = "EM";
+                                                            res.json({ mensaje: mensajeEntrada });
+                                                            console.log("Cookie Establecida")
+                                                        }
+                                                    })
+
+                                                })
                                             }
                                             else {
-                                                const firmaCookie = sign(informacionGuardar, claveSecreta, cookieOpciones);
+                                                //@ts-ignore 
+                                                conexion.query(iniciarConexionBaseDatos, [municipalidad], (err4, conectando) => {
+                                                    if (err4) { throw err4; }
+                                                    conexion.query(busquedaInformacionUsuarioMunicipal, [rut], (err5, busquedaUsuario) => {
+                                                        if (err5) { throw err5; }
+                                                        const datosNuevos = busquedaUsuario[0];
+                                                        console.log(datosNuevos, "Estos serias los datos del usuario");
+                                                        const nombreGuardar: string = datosNuevos.nombrecompletousuario;
+                                                        console.log(nombreGuardar);
+                                                        const rutGuardar: string = datosNuevos.rutusuario;
+                                                        const permisosGuardar: number = datosNuevos.permisosusuario;
+                                                        const departamentoGuardar: number = datosNuevos.departamentousuario;
+                                                        const nombreMunicipalidad: string = municipalidad;
+                                                        /*                                         const departamentosEnLaMunicipalidad: number = departamentosMunicipales;
+                                                         */
+                                                        const informacionGuardar = { nombreG: nombreGuardar, rutG: rutGuardar, permisosG: permisosGuardar, departamentoG: departamentoGuardar, nombreMunicipalidadG: nombreMunicipalidad };
 
-                                                console.log(firmaCookie);
 
-                                                res.cookie("muni", firmaCookie, { httpOnly: true, maxAge: 3600000 });
-                                                const mensajeEntreda : string = "EP";
-                                                res.json({mensaje: mensajeEntreda});
+                                                        const cookieOpciones: SignOptions = {
+                                                            expiresIn: '3h',
+                                                            algorithm: 'HS256'
+                                                        };
+
+                                                        const claveSecreta = process.env.COOKIE_CLAVE;
+                                                        if (!claveSecreta) {
+                                                            console.log("Error en clave secreta");
+                                                        }
+                                                        else {
+                                                            const firmaCookie = sign(informacionGuardar, claveSecreta, cookieOpciones);
+
+                                                            res.cookie("muni", firmaCookie, { httpOnly: false, maxAge: 3600000 });
+                                                            const mensajeEntrada: string = "EM";
+                                                            res.json({ mensaje: mensajeEntrada });
+                                                        }
+                                                    })
+
+                                                })
                                             }
-                                        })
 
+
+                                        }
                                     })
                                 }
-                                else {
-                                    //@ts-ignore
-                                    conexion.query(iniciarConexionBaseDatos, [municipalidad], (err4, conectando) => {
-                                        if (err4) { throw err4; }
-                                        conexion.query(busquedaInformacionUsuarioMunicipal, [rut], (err5, busquedaUsuario) => {
-                                            if (err5) { throw err5; }
-                                            const datosNuevos = busquedaUsuario[0];
-                                            const nombreGuardar: string = datosNuevos.nombrecompletousuario;
-                                            const rutGuardar: string = datosNuevos.rutusuario;
-                                            const permisosGuardar: number = datosNuevos.permisosusuario;
-                                            const departamentoGuardar: number = datosNuevos.departamentousuario;
-                                            const nombreMunicipalidad: string = municipalidad;
-                                            /*                                         const departamentosEnLaMunicipalidad: number = departamentosMunicipales;
-                                             */
-                                            const informacionGuardar = { nombreG: nombreGuardar, rutG: rutGuardar, permisosG: permisosGuardar, departamentoG: departamentoGuardar, nombreMunicipalidadG: nombreMunicipalidad };
-
-                                            const cookieOpciones: SignOptions = {
-                                                expiresIn: '3h',
-                                                algorithm: 'HS256'
-                                            };
-
-                                            const claveSecreta = process.env.COOKIE_CLAVE;
-                                            if (!claveSecreta) {
-                                                console.log("Error en clave secreta");
-                                            }
-                                            else {
-                                                const firmaCookie = sign(informacionGuardar, claveSecreta, cookieOpciones);
-
-                                                res.cookie("muni", firmaCookie, { httpOnly: true, maxAge: 3600000 });
-                                            }
-                                        })
-
-                                    })
+                                else { //MUNICIPALIDAD BLOQUEADA SIN ACCESO PARA LOS USUARIOS CONTACTAR CON ADMINISTRADORES PRINCIPALES
+                                    const msjjj: string = "AB"; //ACCESO BLOQUEADO
+                                    res.json({ message: msjjj });
                                 }
-                                //@ts-ignore
+
 
                             }
                         })
-
                     }
+
+
+
                 }
                 else {
                     console.log("Contrasenia es incorrecta");
+                    const msjjjj: string = "UOCI" //USUARIO O CONTRASENIA INVALICOS
+                    res.json({ message: msjjjj });
                 }
             })
 
         }
+  
 
-
-
-
+    
 
     })
 
 }
+
+//DESBLOQUEAR MUNICIPALIDAD
+exports.desbloqueoMunicipal = async (req: Request, res: Response) => {
+
+    const valor = req.body.municipalidad;
+
+    const valorNuevo = 1;
+    const desbloq: string = "UPDATE estadoMunicipalidad = ? WHERE valormunicipalidadcreada = ?";
+    //@ts-ignore
+    conexion.query(desbloq, [valorNuevo, valor], (err, resultado) => {
+        if (err) { throw err; }
+        else {
+            const msj: string = "MD"; //MUNICIPALIDAD DESBLOQUEADA
+            res.json({ message: msj });
+        }
+    })
+}
+
+//BLOQUEAR MUNICIPALIAD
+exports.bloquearMunicipalidad = async (req: Request, res: Response) => {
+    const valor = req.body.municipalidad;
+
+    const valorNuevo = 2;
+    const desbloq: string = "UPDATE estadoMunicipalidad = ? WHERE valormunicipalidadcreada = ?";
+    //@ts-ignore
+    conexion.query(desbloq, [valorNuevo, valor], (err, resultado) => {
+        if (err) { throw err; }
+        else {
+            const msj: string = "MB"; //MUNICIPALIDAD BLOQUEADA
+            res.json({ message: msj });
+        }
+    })
+
+}
+
+//OBTENCION DE DATOS PARA BLOQUEAR O DESBLOQUEAR
+exports.extraccionDatosMunicipalidad = async (req: Request, res: Response) => {
+    const municipalidad = req.body.municipalidad;
+
+    const obtencionDatos: string = "SELECT * FROM estadomunicipalidad WHERE valormunicipalidadcreada = ?";
+
+    conexion.query(obtencionDatos, [municipalidad], (err, resultado) => {
+        if (err) { throw err; }
+        else {
+            const datosMunicipaless = resultado[0];
+            const estoadMunicipalidad = datosMunicipaless.estadoMunicipalidad;
+            res.json({ estadoMuni: estoadMunicipalidad });
+        }
+    })
+}
+
+
+
+
+
+
+//GESTION DE USUARIOS MUNICIPALES
+
+
+//LISTAR USUARIOS MUNICIPALES
+//@ts-ignore
+exports.listarUsuarios = async (req: Request, res: Response) => {
+
+    const listarUsuario: string = "SELECT * FROM usuariomunicipal";
+
+    conexion.query(listarUsuario, (err, resultadoLista) => {
+        if (err) { throw err; }
+        else {
+            res.send(resultadoLista);
+            console.log("usuarios", resultadoLista)
+        }
+    })
+}
+
+//LISTAR DEPARTAMENTOS GAM
+//@ts-ignore
+exports.listarUsuariosDepartamentos = async (req: Request, res: Response) => {
+
+    const municipalidad = req.body.municipalidad;
+
+
+    const obtencioDepartamentos = "SELECT * FROM estadomunicipalidad WHERE valormunicipalidadcreada = ?";
+
+
+    conexionFija.query(obtencioDepartamentos, [municipalidad], (err, resultadoDatosDepartamentos) => {
+        if (err) { throw err; }
+        else {
+            console.log(resultadoDatosDepartamentos, "departamentos");
+            res.send(resultadoDatosDepartamentos);
+        }
+    })
+}
+
+//LISTAR PERMISOS
+//@ts-ignore
+exports.listarPermisos = async (req: Request, res: Response) => {
+
+    const obtencionPermisos = "SELECT * FROM permisos";
+
+    conexion.query(obtencionPermisos, (err, resultado) => {
+        if (err) { throw err; }
+        else {
+            console.log(resultado, " permisos")
+            res.send(resultado);
+        }
+    })
+}
+
+//MOSTRAR EN MODIFICACIONES
+exports.mostrarModificacion = async (req: Request, res: Response) => {
+
+    const rutUsuario = req.body.rutusuario;
+
+    const obtencionDatosUsuario: string = "SELECT * FROM usuariomunicipal WHERE rutusuario = ?";
+
+    conexion.query(obtencionDatosUsuario, [rutUsuario], (err, resultado) => {
+        if (err) { throw err; }
+        else {
+            const datosUsuario = resultado[0];
+            const rutt = datosUsuario.rutusuario;
+            const nombree = datosUsuario.nombrecompletousuario;
+            const permisoss = datosUsuario.permisosusuario;
+            const departamentoss = datosUsuario.departamentousuario;
+            const direccionn = datosUsuario.direccionusuario;
+            const telefonoo = datosUsuario.telefonousuario;
+            const correoo = datosUsuario.correousuario;
+
+            res.json({ rut: rutt, nombre: nombree, permisos: permisoss, departamentos: departamentoss, direccion: direccionn, telefono: telefonoo, correo: correoo });
+        }
+    })
+}
+
+//CREAR USUARIOS MUNICIPALES    agregar historial
+//@ts-ignore
+exports.creacionUsuariosMunicipales = async (req: Request, res: Response) => {
+
+    const rut = req.body.rutusuario;
+    const nombre = req.body.nombrecompleto;
+    const permisos = req.body.permisos;
+    const departamentos = req.body.departamentos;
+    const direccion = req.body.direccion;
+    const telefono = req.body.telefono;
+    const correo = req.body.correo;
+
+    const municipalidad = req.body.municipalidad;
+    const contrasenia = req.body.contrasenia;
+
+    const verificacionPrincipal: string = "SELECT * FROM usuariosprincipal WHERE rutprincipal = ?"
+    const creacionPrincipal: string = "INSERT INTO usuariosprincipal(rutprincipal, nombreprincipal, contraseniaprincipal, valormuncipalidadprincipal, permisosprincipal) VALUES (?,?,?,?,?)";
+
+
+    /*     const verificacionExistencias: string = "SELECT * FROM usuariomunicipal WHERE rutusuario = ?"
+     */
+    const ingresoUsuario: string = "INSERT INTO usuariomunicipal(rutusuario, nombrecompletousuario, permisosusuario, departamentousuario, direccionusuario, telefonousuario, correousuario) VALUES(?,?,?,?,?,?,?)"
+
+
+    conexionFija.query(verificacionPrincipal, [rut], (err, resultadoExistencias) => {
+        if (err) { throw err; }
+        else {
+            const cantidad = contadorArregloSql(resultadoExistencias);
+
+            if (cantidad > 0) {
+                console.log("Usuario ya existe");
+                const msj: string = "UYA" //USUARIO YA EXISTE
+                res.json({ message: msj });
+            }
+            else {
+                //@ts-ignore
+                conexion.query(ingresoUsuario, [rut, nombre, permisos, departamentos, direccion, telefono, correo], (err1, ingreso) => {
+                    if (err1) { throw err1; }
+                    else {
+                        //@ts-ignore
+                        conexionFija.query(creacionPrincipal, [rut, nombre, contrasenia, municipalidad, permisos], (err23, resultadoa) => {
+                            if (err23) { throw err23; }
+                            else {
+                                console.log("Creacion del usuario exitosa");
+                                const msjj: string = "URE" // USUARIO REGISTRADO EXITOSAMENTE
+                                res.json({ message: msjj });
+                            }
+                        })
+
+                    }
+                })
+            }
+        }
+    })
+}
+
+//MODIFICACION DE USUARIOS     agregar historial
+exports.modificacionUsuariosMunicipales = async (req: Request, res: Response) => {
+
+    const rut = req.body.rut;
+    const nombre = req.body.nombre;
+    const permisos = req.body.permisos;
+    const departamentos = req.body.departamentos;
+    const direccion = req.body.direccion;
+    const telefono = req.body.telefono;
+    const correo = req.body.correo;
+
+    const actualizacionDatos: string = "UPDATE usuariomunicipal SET nombrecompletousuario = ?, permisosusuario = ?, departamentousuario = ?, direccionusuario = ?, telefonousuario = ?, correousuario = ? WHERE rutusuario = ?";
+
+    //@ts-ignore
+    conexion.query(actualizacionDatos, [nombre, permisos, departamentos, direccion, telefono, correo, rut], (err, resultado) => {
+        if (err) { throw err; }
+        else {
+            const msj: string = "UA" //USUARIO ACTUALIZADO
+            res.json({ message: msj });
+        }
+    })
+}
+
+exports.eliminarUsuarios = async (req: Request, res: Response) => {
+
+    const rut = req.body.rutusuario;
+
+    const eliminarUsuario = "DELETE FROM usuariomunicipal WHERE rutusuario = ?";
+    //@ts-ignore
+    conexion.query(eliminarUsuario, [rut], (err, resultado) => {
+        if (err) { throw err; }
+        else {
+            const msj: string = "UEE" //USUARIO ELIMINADO EXITOSAMENTE
+            res.json({ message: msj });
+        }
+    })
+
+}
+
+
+
 

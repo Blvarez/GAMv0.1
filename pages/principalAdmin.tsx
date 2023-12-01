@@ -6,6 +6,7 @@ import MUIDataTable from "mui-datatables";
 import { IconButton } from "@mui/material";
 import { Delete } from "@mui/icons-material";
 import { Edit } from "@mui/icons-material";
+import ModalCreacion from "../components/Alertas/Principal/creacion";
 
 export default function principal() {
 
@@ -17,6 +18,8 @@ export default function principal() {
     const [departamentosSeleccionados, setDepartamentosSeleccionados] = useState([]); //SE INICIALIZAN POR TYPESCRIPT BUSCA UNO PARECIDO SI ES UNDEFINED
     const [estadoTodosDepartamentos, setEstadoTodosDepartamentos] = useState(false);
 
+    const [modalCreacion, setModalCreacion] = useState(false);
+    const [error, setError] = useState<number>();
 
     const [rut, setRut] = useState<string>();
     const [nombre, setNombre] = useState<string>();
@@ -27,24 +30,36 @@ export default function principal() {
     //@ts-ignore
     const creacionMunicipalidad = async () => {
         console.log("Entrando a la funcion de creacion de municipalidades");
-        const departamentoSuma = calculoDepartamentos(departamentosSeleccionados)
 
-        console.log(departamentoSuma)
+        console.log(departamentosSeleccionados);
+        
         await axios({
-            method: "post",
+            method: "post",   
             data: {
                 rutusuarioprincipal: rut,
                 contraseniaprincipal: contrasenia,
                 nombreusuarioprincipal: nombre,
                 municipalidad: municipalidad,
-                departamentos:departamentoSuma
+                departamentos:departamentosSeleccionados
             },
             url: "http://localhost:3001/inicioSesionPrincipal/operacionInicioSesion",
             withCredentials: true
+        }).then((response) => {
+            const mensaje : string = response.data.message;
+            if(mensaje == "CBDM"){
+                setModalCreacion(true);
+                const valoruno : number = 1;
+                setError(valoruno);
+            }
+            else if(mensaje == "CBDE"){
+                setModalCreacion(true);
+                const valordos : number = 2;
+                setError(valordos);
+            }
         })
     }
 
-
+//@ts-ignore
     const calculoDepartamentos = async (arregloDepartamentos: any[]) => {
         const arregloNumeros = arregloDepartamentos.map((numero) => {
             return parseInt(numero, 10);
@@ -54,6 +69,10 @@ export default function principal() {
 
         const resultadoResta: number = arregloNumeros.reduce((acumulador, numero) => acumulador - numero, 0);
         const arregloResultado: number[] = [resultadoSuma, resultadoResta];
+
+        console.log(arregloResultado);
+
+        
 
         return arregloResultado;
     }
@@ -171,13 +190,34 @@ export default function principal() {
         })
     }
 
-    //OBTENCION DE LOS DATOS DE LOS DEPARTAMENTOS DE LA BASE DE DATOS PRINCIPAL 
+   /*  //OBTENCION DE LOS DATOS DE LOS DEPARTAMENTOS DE LA BASE DE DATOS PRINCIPAL 
     const obtencionDatosDepartamentos = async () => {
         await axios.get("http://localhost:3001/obtencionDatosDepartamentosSelect").then((response) => {
             const datosDepartamentos = response.data;
             setDatosDepartamentosSelect(datosDepartamentos);
         })
+    } */
+
+    const obtencionDatosDepartamentos = async () => {
+        console.log("Entrando a la funcion de creacion de municipalidades");
+
+        console.log(departamentosSeleccionados);
+        
+        await axios({
+            method: "post",   
+            data: {
+                municipalidad: municipalidad,
+            },
+            url: "http://localhost:3001/obtencionDatosDepartamentosSelect",
+            withCredentials: true
+        }).then((response) => {
+            const datosDepartamentos = response.data;
+            setDatosDepartamentosSelect(datosDepartamentos);
+        })
+        
     }
+
+
 
 
     //SUMATORIA DE TODOS LOS DEPARTAMENTOS SELECCIONADOS
@@ -206,6 +246,7 @@ export default function principal() {
         obtencionPersonasMunicipalidades();
         obtencionDatosDepartamentos();
         obtencionDatosMunicipalidades();
+
     }, []);
 
 
@@ -277,6 +318,8 @@ export default function principal() {
                         <MUIDataTable data={datosPrincipalMunicipalidades} columns={columnas} options={opciones} title="Municipalidades" />
                     </div>
                 </div>
+
+                <ModalCreacion tipoDato={1} datoExtra={municipalidad} estadoCreacion={modalCreacion} cambioEstadoCreacion={setModalCreacion} error={error}/>
 
             </div>
         </>

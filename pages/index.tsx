@@ -26,6 +26,10 @@ export default function index() {
                     console.log("Ha accedido con exito");
                     window.location.href = "/menuprincipal";
                 }
+                else if(llegando.mensaje == "EM"){
+                    console.log("Ha accedido con exito");
+                    window.location.href = "/Municipalidades/principalMunicipalidades";
+                }
                 else {
                     console.log("Usuario o Contrasenia Incorrecta");
                 }
