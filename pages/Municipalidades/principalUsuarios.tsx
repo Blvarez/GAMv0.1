@@ -1,4 +1,4 @@
-import Navbar from "../../components/Navbar";
+/* import Navbar from "../../components/Navbar";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import React from "react";
@@ -333,7 +333,7 @@ export default function principal() {
          })
      } */
 
-    const obtencionDatosDepartamentos = async () => {
+   /*  const obtencionDatosDepartamentos = async () => {
         await axios({
             method: "post",
             data: {
@@ -491,4 +491,4 @@ export default function principal() {
             </div>
         </>
     )
-}
+} */ 

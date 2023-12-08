@@ -7,8 +7,9 @@ import { IconButton } from "@mui/material";
 import { Delete } from "@mui/icons-material";
 import { Edit } from "@mui/icons-material";
 import InfoIcon from '@mui/icons-material/Info';
-import ModalCreacion from "../../../components/Alertas/Principal/creacion";
 import EliminacionBeneficios from "../../../components/Alertas/Municipalidad/Dideco/gestionBeneficios/eliminacion/beneficios";
+import RespuestaCreacionBeneficio from "../../../components/Alertas/Municipalidad/Dideco/gestionBeneficios/creacion/respuestaCreacionBeneficio";
+import VentanaModBeneficio from "../../../components/Alertas/Municipalidad/Dideco/gestionBeneficios/modificacion/Modalbeneficiomod";
 
 /* import ModalCreacion from "../../../components/Alertas/Principal/creacion";
  */
@@ -18,6 +19,9 @@ export default function beneficios() {
 
     const usuario = "";
     const permisos = 30;
+
+    const [lector, setLector] = useState<number>();
+    const [ventandaMod, setVentanaMod] = useState(false);
 
     const [idbeneficio, setIdbeneficio] = useState<string>();
     const [estadoCreacion, setEstadoCreacion] = useState(false);
@@ -33,8 +37,10 @@ export default function beneficios() {
     const [stock, setStock] = useState<number>();
 
 
-    const [idBeneficioSelec, setIdBeneficioSelec] = useState<string>();
+    const [idBeneficioSelec, setIdBeneficioSelec] = useState<string>("");
     const [estadoVentanaEliminacion, setEstadoVentanaEliminacion] = useState(false);
+
+    const [tipodato, setTipoDato] = useState<number>(0);
 
 
     /*      const [modalCreacion, setModalCreacion] = useState(false);
@@ -79,14 +85,22 @@ export default function beneficios() {
                 setIdbeneficio(idBeneficio);
                 setEstadoCreacion(true);
                 setErro(1);
+                setTipoDato(3);
 
             }
             else if (mensaje == "CBYE") {
                 console.log("Ya existe el beneficio");
                 setEstadoCreacion(true);
                 setErro(2);
+                setTipoDato(3);
             }
-        }) 
+            else if(mensaje == "EID"){
+                console.log("Error en el ingreso de datos");
+                setEstadoCreacion(true);
+                setErro(3);
+                setTipoDato(1);
+            }
+        })
     }
 
 
@@ -102,8 +116,32 @@ export default function beneficios() {
             name: "estadobeneficio",
             label: "ESTADO",
             options: {
-                filter: false
-            }
+                filter: false,
+                //@ts-ignore
+                customBodyRender: (value, tableMeta) => {
+                    const estado = parseInt(value, 10);
+
+                    // Define el texto y el color según el estado
+                    let buttonText = "";
+                    let buttonColor = "";
+                    if (estado === 1) {
+                        buttonText = "Postulación";
+                        buttonColor = "brown";
+                    } else if (estado === 2) {
+                        buttonText = "Entrega Inmediata";
+                        buttonColor = "green";
+                    }
+
+                    return (
+                        <button
+                            style={{ backgroundColor: buttonColor }}
+                            disabled={true} // Puedes cambiar esto según tus condiciones
+                        >
+                            {buttonText}
+                        </button>
+                    );
+                },
+            },
         },
         {
             name: "stockbeneficio",
@@ -150,8 +188,32 @@ export default function beneficios() {
             name: "estadobeneficio",
             label: "ESTADO",
             options: {
-                filter: false
-            }
+                filter: false,
+                //@ts-ignore
+                customBodyRender: (value, tableMeta) => {
+                    const estado = parseInt(value, 10);
+
+                    // Define el texto y el color según el estado
+                    let buttonText = "";
+                    let buttonColor = "";
+                    if (estado === 1) {
+                        buttonText = "Postulación";
+                        buttonColor = "brown";
+                    } else if (estado === 2) {
+                        buttonText = "Entrega Inmediata";
+                        buttonColor = "green";
+                    }
+
+                    return (
+                        <button className="rounded-t-xl rounded-b-xl p-2"
+                            style={{ backgroundColor: buttonColor }}
+                            disabled={true} // Puedes cambiar esto según tus condiciones
+                        >
+                            {buttonText}
+                        </button>
+                    );
+                },
+            },
         },
         {
             name: "stockbeneficio",
@@ -241,12 +303,48 @@ export default function beneficios() {
         rowsPerPage: 10,
         rowsPerPageOptions: [10],
         viewColumns: false,
-        filter: true
-    }
+        filter: true, textLabels: {
+            body: {
+                noMatch: "No se encontraron registros",
+                toolTip: "Ordenar",
+            },
+            pagination: {
+                next: "Siguiente",
+                previous: "Anterior",
+                rowsPerPage: "Filas por página:",
+                displayRows: "de",
+            },
+            toolbar: {
+                search: "Buscar",
+                downloadCsv: "Descargar CSV",
+                print: "Imprimir",
+                viewColumns: "Ver Columnas",
+                filterTable: "Filtrar Tabla",
+            },
+            filter: {
+                all: "Todos",
+                title: "FILTROS",
+                reset: "RESETEAR",
+            },
+            viewColumns: {
+                title: "Mostrar Columnas",
+                titleAria: "Mostrar/Ocultar Columnas de la Tabla",
+            },
+            selectedRows: {
+                text: "fila(s) seleccionada(s)",
+                delete: "Eliminar",
+                deleteAria: "Eliminar filas seleccionadas",
+            },
+        },
+    } 
 
     //Funcion Mostrar Beneficio
     function mostrarBeneficio(idBeneficio: string) {
         console.log("Esta sera la funcion paara mostrar informacion del Beneficio", idBeneficio);
+        setIdBeneficioSelec(idBeneficio);
+        setLector(2);
+        setVentanaMod(true);
+
     }
 
     //Funcion Eliminar Municipalidad
@@ -259,6 +357,11 @@ export default function beneficios() {
     //Funcion Modificar Municipalidad
     function modificarBeneficio(idbeneficio: string) {
         console.log("Esta sera la funcion modificar", idbeneficio);
+        setIdBeneficioSelec(idbeneficio);
+        setLector(1);
+        setVentanaMod(true);
+
+
     }
 
 
@@ -330,13 +433,13 @@ export default function beneficios() {
 
                 <div className="row-start-1 row-end-1 col-start-3 col-end-3 grid grid-rows-4">
                     <h1 className="row-start-2 row-end-3 mx-auto text-white">Stock</h1>
-                    <input className="row-start-3 row-end-4 w-1/2 mx-auto rounded-t-xl rounded-b-xl" onChange={(e) => setStock(Number(e.target.value))}></input>
+                    <input className="row-start-3 row-end-4 w-1/2 mx-auto rounded-t-xl rounded-b-xl" type="number" min="1" max="9999999999" onChange={(e) => setStock(Number(e.target.value))}></input>
                 </div>
 
 
 
 
-                <div className="row-start-2 row-end-2 col-start-3 col-end-4 grid grid-rows-4">
+                <div className="row-start-2 row-end-2 col-start-2 col-end-3 grid grid-rows-4">
                     <button className="row-start-2 row-end-4 mx-auto text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px]" onClick={() => creacionBeneficio()}>CREAR</button>
                 </div>
 
@@ -385,9 +488,12 @@ export default function beneficios() {
                 </div>
 
 
-                <ModalCreacion datoExtra={idbeneficio} tipoDato={3} estadoCreacion={estadoCreacion} cambioEstadoCreacion={setEstadoCreacion} error={erro}/>
 
                 <EliminacionBeneficios estadoModalBeneficioEli={estadoVentanaEliminacion} cambioEstadoModalBeneficioEli={setEstadoVentanaEliminacion} idBeneficio={idBeneficioSelec}></EliminacionBeneficios>
+
+                <RespuestaCreacionBeneficio estadoCreacion={estadoCreacion} cambioEstadoCreacion={setEstadoCreacion} datoExtra={idbeneficio} tipoDato={tipodato} error={erro}/>
+
+                <VentanaModBeneficio estadoModalBeneficioMod={ventandaMod} cambioEstadoModalBeneficioMod={setVentanaMod} lector={lector} idmodbeneficio={idBeneficioSelec} />
 
             </div>
 

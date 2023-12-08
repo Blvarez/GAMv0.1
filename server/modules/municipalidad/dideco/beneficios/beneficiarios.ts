@@ -1,71 +1,79 @@
+//@ts-ignore
 const { DataSaverOffTwoTone, DataSaverOn } = require("@mui/icons-material");
 const multer = require("multer");
 const storage = multer.memoryStorage();
+//@ts-ignore
 const upload = multer({ storage: storage }).single('pdf');
-const dbDidecoGBeneficios = require("../../../bd/dbdidecogbeneficios");
+import conexion from "../../../../db/conexion";
 import { Request, Response } from "express";
+
+
 //@ts-ignore
 exports.listarBeneficiariosPersonas = (req: Request, res: Response) => {//MUESTRA LOS BENEFICIARIOS/PERSONA EN UNA LISTA
 
-    const queryListaPersonaBeneficiario = "SELECT beneficiario.rutbeneficiario, beneficiario.porcentajerh, persona.nombres, persona.apellidos, persona.edad, persona.direccion, persona.telefono, persona.correo FROM beneficiario JOIN persona ON beneficiario.rutbeneficiario = persona.rut";
+    const queryListaPersonaBeneficiario = "SELECT beneficiario.rutbeneficiario, beneficiario.porcentajerhbeneficiario, persona.nombrecompleto, persona.edadpersona, persona.direccionpersona, persona.telefonopersona, persona.correopersona FROM beneficiario JOIN persona ON beneficiario.rutbeneficiario = persona.rutpersona";
 
     //@ts-ignore
-    dbDidecoGBeneficios.query(queryListaPersonaBeneficiario, (err, result) => {
+    conexion.query(queryListaPersonaBeneficiario, (err, result) => {
         if (err) { throw err; }
         else {
-
+            console.log(result);
             res.send(result);
-        } 
+        }
     })
 }
 
+
+
 //@ts-ignore
-exports.listarBeneficiarios = (req:Request, res:Response) => {
+/* exports.listarBeneficiarios = (req:Request, res:Response) => {
 
     console.log("Estoy aca listando beneficiarios")
 
     const queryListarBeneficiario = "SELECT * FROM beneficiario";
     //@ts-ignore
-    dbDidecoGBeneficios.query(queryListarBeneficiario, (err, result) => {
+    conexion.query(queryListarBeneficiario, (err, result) => { 
 
         if (err) { throw err; }
 
-        else {
+        else {   
             res.send(result);
         }
     })
 
-}
+} */
 
 
-exports.agregarBeneficiario = (req:Request, res:Response) => {//AGREGA UN BENEFICIARIO
+exports.agregarBeneficiario = (req: Request, res: Response) => {//AGREGA UN BENEFICIARIO
 
 
-    const rutBeneficiario = req.body.rutAgr;
-    const nombresBeneficiario = req.body.nombresAgr;
-    const apellidosBeneficiario = req.body.apellidosAgr;
-    const edadBeneficiario = req.body.edadAgr;
-    const direccionBeneficiario = req.body.direccionAgr;
-    const telefonoBeneficiario = req.body.telefonoAgr;
-    const correoBeneficiario = req.body.correoAgr;
-    const porcentajeRH = req.body.porcentajeRHAgr;
+    const rutBeneficiario = req.body.rut;
+    const nombresBeneficiario = req.body.nombreper;
+    const edadBeneficiario = req.body.edadper;
+    const direccionBeneficiario = req.body.direccionper;
+    const telefonoBeneficiario = req.body.telefonoper;
+    const correoBeneficiario = req.body.correoper;
+    const porcentajeRH = req.body.porcentajepdf;
 
+
+    console.log(rutBeneficiario, nombresBeneficiario, edadBeneficiario, direccionBeneficiario, telefonoBeneficiario, correoBeneficiario, porcentajeRH), "AQUIIIII";
 
     const rut = req.body.rutpdf;
     const archivo = req.body.archivopdf;
     const nombre = req.body.nombrepdf;
     const tipo = req.body.tipopdf;
+    console.log(archivo);
 
 
-    const verificacionPersona = "SELECT * FROM persona WHERE rut = ?";
+    const verificacionPersona = "SELECT * FROM persona WHERE rutpersona = ?";
     const verificarBeneficiario = "SELECT * FROM beneficiario WHERE rutbeneficiario = ?";
 
-    const queryAgregarPDF = "INSERT INTO pdfcartola (rutbeneficiariopdf, nombrepdf, typepdf, archivo) VALUES (?, ?, ?, ?)";
-    const agregarBeneficiario = "INSERT INTO beneficiario(rutbeneficiario, porcentajerh) VALUES (?,?)";
-    const agregarPersona = "INSERT INTO persona(rut, nombres, apellidos, direccion, edad, telefono, correo) VALUES (?,?,?,?,?,?,?)";
+    const queryAgregarPDF = "INSERT INTO beneficiario (rutbeneficiario, porcentajerhbeneficiario, nombrepdf, typepdf, archivopdf) VALUES (?, ?, ?, ?, ?)";
+
+    const agregarPersona = "INSERT INTO persona(rutpersona, nombrecompleto, edadpersona, direccionpersona, telefonopersona, correopersona) VALUES (?, ?, ?, ?, ?, ?)";
 
     //@ts-ignore
-    dbDidecoGBeneficios.query(verificacionPersona, [rutBeneficiario], (err, result) => {
+    conexion.query(verificacionPersona, [rutBeneficiario], (err, result) => {
         if (err) { throw err; }
 
         var key, count = 0;
@@ -74,10 +82,10 @@ exports.agregarBeneficiario = (req:Request, res:Response) => {//AGREGA UN BENEFI
                 count++;
             }
         }
-
+ 
         if (count > 0) {
             //@ts-ignore
-            dbDidecoGBeneficios.query(verificarBeneficiario, [rutBeneficiario], (err1, result1) => {
+            conexion.query(verificarBeneficiario, [rutBeneficiario], (err1, result1) => {
 
                 if (err1) { throw err1; }
 
@@ -93,50 +101,38 @@ exports.agregarBeneficiario = (req:Request, res:Response) => {//AGREGA UN BENEFI
                     res.json({ message: mensajeBeneficiarioYaExistente });
                 }
 
-                if (count1 == 0) {
+                else if (count1 == 0) {
                     //@ts-ignore
-                    dbDidecoGBeneficios.query(agregarBeneficiario, [rutBeneficiario, porcentajeRH], (err2, result2) => {
+                    conexion.query(queryAgregarPDF, [rutBeneficiario, porcentajeRH, nombre, tipo, Buffer.from(archivo)], (err2, result2) => {
+
 
                         if (err2) { throw err2; }
-                        //@ts-ignore
-                        dbDidecoGBeneficios.query(queryAgregarPDF, [rut, nombre, tipo, Buffer.from(archivo)], (err8, result8) => {
-
-                            if (err8) { throw err8; }
-
-
-                            const mensajeBeneficiarioCreado = "BC";
-                            res.json({ message: mensajeBeneficiarioCreado });
-
-                            console.log("PDF agregado");
-
-                        })
-
-                    })
-                }
-            })
-        }
-
-        if (count == 0) {
-
-            dbDidecoGBeneficios.query(agregarPersona, [rutBeneficiario, nombresBeneficiario, apellidosBeneficiario, direccionBeneficiario, edadBeneficiario, telefonoBeneficiario, correoBeneficiario], (err3, result3) => {
-
-                if (err3) { throw err3; }
-                //@ts-ignore
-                dbDidecoGBeneficios.query(agregarBeneficiario, [rutBeneficiario, porcentajeRH], (err4, result4) => {
-
-                    if (err4) { throw err4; }
-                    //@ts-ignore
-                    dbDidecoGBeneficios.query(queryAgregarPDF, [rut, nombre, tipo, Buffer.from(archivo)], (err9, result9) => {
-
-                        if (err9) { throw err9; }
 
                         const mensajeBeneficiarioCreado = "BC";
                         res.json({ message: mensajeBeneficiarioCreado });
 
                         console.log("PDF agregado");
+
                     })
+                }
+
+            })
+        }
+        else if (count == 0) {
+            //@ts-ignore
+            conexion.query(agregarPersona, [rut, nombresBeneficiario, edadBeneficiario, direccionBeneficiario, telefonoBeneficiario, correoBeneficiario], (err3, result3) => {
+
+                if (err3) { throw err3; }
+                //@ts-ignore
+                conexion.query(queryAgregarPDF, [rutBeneficiario, porcentajeRH, nombre, tipo, Buffer.from(archivo)], (err2, result2) => {
 
 
+                    if (err2) { throw err2; }
+
+                    const mensajeBeneficiarioCreado = "BC";
+                    res.json({ message: mensajeBeneficiarioCreado });
+
+                    console.log("PDF agregado");
 
                 })
             })
@@ -145,49 +141,49 @@ exports.agregarBeneficiario = (req:Request, res:Response) => {//AGREGA UN BENEFI
 }
 
 
-exports.listarModificacionBeneficiario = (req:Request, res: Response) => { //LISTO LOS VALORES DE FORMA UNITARIA PARA PODER MOSTRARLOS EN EL MODAL
+
+
+
+
+
+exports.listarModificacionBeneficiario = (req: Request, res: Response) => { //LISTO LOS VALORES DE FORMA UNITARIA PARA PODER MOSTRARLOS EN EL MODAL
 
     const rut = req.body.rut;
 
     const queryConsultarDatosBeneficiario = "SELECT * FROM beneficiario WHERE rutbeneficiario = ?";
-    const queryConsultarDatosPersonas = "SELECT * FROM persona WHERE rut = ?";
-    const queryConsultarInfoPdf = "SELECT * FROM pdfcartola WHERE rutbeneficiariopdf = ?";
+    const queryConsultarDatosPersonas = "SELECT * FROM persona WHERE rutpersona = ?";
+
     //@ts-ignore
-    dbDidecoGBeneficios.query(queryConsultarDatosBeneficiario, [rut], (err, result) => {
+    conexion.query(queryConsultarDatosBeneficiario, [rut], (err, result) => {
 
         if (err) { throw err; }
 
-        const porcentajerh = result[0].porcentajerh;
+        const porcentajerh = result[0].porcentajerhbeneficiario;
+        const nombrepdf = result[0].nombrepdf;
+        const tipopdf = result[0].typepdf;
+        const archivopdf = result[0].archivopdf;
+
         //@ts-ignore
-        dbDidecoGBeneficios.query(queryConsultarDatosPersonas, [rut], (err1, result1) => {
+        conexion.query(queryConsultarDatosPersonas, [rut], (err1, result1) => {
 
             if (err1) { throw err1; }
 
-            const nombres = result1[0].nombres;
-            const apellidos = result1[0].apellidos;
-            const edad = result1[0].edad;
-            const direccion = result1[0].direccion;
-            const telefono = result1[0].telefono;
-            const correo = result1[0].correo;
-            //@ts-ignore
-            dbDidecoGBeneficios.query(queryConsultarInfoPdf, [rut], (err2, result2) => {
+            const nombres = result1[0].nombrecompleto;
+            const edad = result1[0].edadpersona;
+            const direccion = result1[0].direccionpersona;
+            const telefono = result1[0].telefonopersona;
+            const correo = result1[0].correopersona;
 
-                if (err2) { throw err2; }
+            res.json({ nombress: nombres, edadd: edad, direccionn: direccion, telefonoo: telefono, correoo: correo, porcentaje: porcentajerh, nombreArchivo: nombrepdf, tipopdff: tipopdf, archivopdff: archivopdf });
 
-                const nombrepdf = result2[0].nombrepdf;
-                const tipopdf = result2[0].typepdf;
-                const archivopdf = result2[0].archivo;
-
-                res.json({ nombress: nombres, apellidoss: apellidos, edadd: edad, direccionn: direccion, telefonoo: telefono, correoo: correo, porcentaje: porcentajerh, nombreArchivo: nombrepdf, tipopdff: tipopdf, archivopdff: archivopdf });
-
-            })
 
         })
     })
 }
 
 
-exports.eliminarBeneficiario = (req:Request, res:Response) => {
+
+exports.eliminarBeneficiario = (req: Request, res: Response) => {
 
     const rutBeneficiario = req.body.rut;
 
@@ -198,9 +194,9 @@ exports.eliminarBeneficiario = (req:Request, res:Response) => {
     const queryConsultarSolicitudes = "SELECT * FROM solicitud WHERE rutbeneficiariosol = ?";
 
     //@ts-ignore
-    dbDidecoGBeneficios.query(queryConsultarSolicitudes, [rutBeneficiario], (err2, result2) => {
+    conexion.query(queryConsultarSolicitudes, [rutBeneficiario], (err2, result2) => {
 
-        if(err2) {throw err2;}
+        if (err2) { throw err2; }
 
         var key2, count2 = 0;
         for (key2 in result2) {
@@ -210,50 +206,52 @@ exports.eliminarBeneficiario = (req:Request, res:Response) => {
         }
 
 
-        if(count2 == 0){
+        if (count2 == 0) {
             //@ts-ignore
-            dbDidecoGBeneficios.query(queryEliminarPdf, [rutBeneficiario], (err0, result0) => {
+            conexion.query(queryEliminarPdf, [rutBeneficiario], (err0, result0) => {
 
                 if (err0) { throw err0; }
-                
+
                 //@ts-ignore
-                dbDidecoGBeneficios.query(queryEliminarBeneficiario, [rutBeneficiario], (err, result) => {
-                    
+                conexion.query(queryEliminarBeneficiario, [rutBeneficiario], (err, result) => {
+
                     if (err) { throw err; }
                     //@ts-ignore
-                    dbDidecoGBeneficios.query(queryEliminarPersona, [rutBeneficiario], (err1, result1) => {
-                        
+                    conexion.query(queryEliminarPersona, [rutBeneficiario], (err1, result1) => {
+
                         if (err1) { throw err1; }
-        
+
                         const mensajeEliminadoConExito = "ECE";
                         res.json({ message: mensajeEliminadoConExito });
                     })
                 })
-        
+
             })
 
         }
 
-        if(count2 > 0) {
+        if (count2 > 0) {
 
             const mensajeNoEliminarTieneSolicitudes = "NES";
-            res.json({ message: mensajeNoEliminarTieneSolicitudes});
+            res.json({ message: mensajeNoEliminarTieneSolicitudes });
         }
 
 
 
     })
 
-    
+
 }
+//ELIMNACION PENDIENTEEEEEEE
 
 
-exports.modificarBeneficiario = (req:Request, res:Response) => {
+
+
+exports.modificarBeneficiario = (req: Request, res: Response) => {
 
     const rutBeneficiario = req.body.rutBeneficiarioMod;
 
     const nombresBeneficiario = req.body.nombresMod;
-    const apellidosBeneficiario = req.body.apellidosMod;
     const edadBeneficiario = req.body.edadMod;
     const direccionBeneficiario = req.body.direccionMod;
     const telefonoBeneficiario = req.body.telefonoMod;
@@ -261,20 +259,21 @@ exports.modificarBeneficiario = (req:Request, res:Response) => {
 
     const porcentajeRH = req.body.porcentaje;
 
-    const queryModificacionBeneficiario = "UPDATE beneficiario SET porcentajerh = ? WHERE rutbeneficiario = ?";
-    const queryModificacionPersona = "UPDATE persona SET nombres = ?, apellidos = ?, edad = ?, direccion = ?, telefono = ?, correo = ? WHERE rut = ?";
+    const queryModificacionBeneficiario = "UPDATE beneficiario SET porcentajerhbeneficiario = ? WHERE rutbeneficiario = ?";
+    const queryModificacionPersona = "UPDATE persona SET nombrecompleto = ?, edadpersona = ?, direccionpersona = ?, telefonopersona = ?, correopersona = ? WHERE rutpersona = ?";
 
-    dbDidecoGBeneficios.query(queryModificacionPersona, [nombresBeneficiario, apellidosBeneficiario, edadBeneficiario, direccionBeneficiario, telefonoBeneficiario, correoBeneficiario, rutBeneficiario], (err, result) => {
+    //@ts-ignore
+    conexion.query(queryModificacionPersona, [nombresBeneficiario, edadBeneficiario, direccionBeneficiario, telefonoBeneficiario, correoBeneficiario, rutBeneficiario], (err, result) => {
 
         if (err) { throw err; }
+
         //@ts-ignore
-        dbDidecoGBeneficios.query(queryModificacionBeneficiario, [porcentajeRH, rutBeneficiario], (err1, result1) => {
+        conexion.query(queryModificacionBeneficiario, [porcentajeRH, rutBeneficiario], (err1, result1) => {
 
             if (err1) { throw err1; }
 
             const mensajeExitoModificacionBeneficiario = "EMB";
             res.json({ message: mensajeExitoModificacionBeneficiario });
-            next();
 
         })
     })
@@ -283,7 +282,7 @@ exports.modificarBeneficiario = (req:Request, res:Response) => {
 }
 
 
-exports.modificarPdfBeneficiario = (req:Request, res:Response) => {
+exports.modificarPdfBeneficiario = (req: Request, res: Response) => {
 
     const rutBeneficiario = req.body.rutBeneficiarioMod;
 
@@ -295,9 +294,9 @@ exports.modificarPdfBeneficiario = (req:Request, res:Response) => {
     console.log(typePdf);
     console.log(archivo);
 
-    const queryModificacionPdf = "UPDATE pdfcartola SET nombrepdf = ?, typepdf = ?, archivo = ? WHERE rutbeneficiariopdf = ?";
+    const queryModificacionPdf = "UPDATE beneficiario SET nombrepdf = ?, typepdf = ?, archivopdf = ? WHERE rutbeneficiario = ?";
     //@ts-ignore
-    dbDidecoGBeneficios.query(queryModificacionPdf, [nombrePdf, typePdf, Buffer.from(archivo), rutBeneficiario], (err2, result2) => {
+    conexion.query(queryModificacionPdf, [nombrePdf, typePdf, Buffer.from(archivo), rutBeneficiario], (err2, result2) => {
 
         if (err2) { throw err2; }
 
@@ -309,26 +308,29 @@ exports.modificarPdfBeneficiario = (req:Request, res:Response) => {
 
 
 
-exports.infoPdf = (req:Request, res:Response) => {
+exports.infoPdf = (req: Request, res: Response) => {
 
     console.log("estoy aca en la parte del servidor")
 
     const rut = req.body.rut;
 
-    const queryLeerPdf = "SELECT * FROM pdfcartola WHERE rutbeneficiariopdf = ?";
+    const queryLeerPdf = "SELECT * FROM beneficiario WHERE rutbeneficiario = ?";
     //@ts-ignore
-    dbDidecoGBeneficios.query(queryLeerPdf, [rut], (err, result) => {
+    conexion.query(queryLeerPdf, [rut], (err, result) => {
 
         if (err) { throw err; }
 
-        const pdf = result[0].archivo;
+        const pdf = result[0].archivopdf
 
         res.send(pdf);
     })
 }
 
 
-exports.verificarBeneficiario = (req:Request, res:Response) => {
+
+
+
+exports.verificarBeneficiario = (req: Request, res: Response) => {
 
     console.log("entro aca al servidor verificacion beneficiario")
 
@@ -336,7 +338,7 @@ exports.verificarBeneficiario = (req:Request, res:Response) => {
 
     const queryVerificacion = "SELECT * FROM beneficiario WHERE rutbeneficiario = ?";
     //@ts-ignore
-    dbDidecoGBeneficios.query(queryVerificacion, [rut], (err, result) => {
+    conexion.query(queryVerificacion, [rut], (err, result) => {
 
         if (err) { throw err; }
 

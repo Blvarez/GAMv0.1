@@ -1,6 +1,5 @@
 //import jwt from "jsonwebtoken";
 import conexion from "../db/conexion";
-import conexionFija from "../db/conexionFija";
 //@ts-ignore
 import { query, Request, Response } from "express";
 import bcrypt from "bcrypt";
@@ -34,6 +33,25 @@ function contadorArregloSql(arreglo: any) {
 
 
 //GESTION USUARIOS PRINCIPALES MUNICIPALES Y MUNICIPALIDAD
+
+//CIERRE SESION GLOBAL
+//@ts-ignore
+exports.cierreSesion = async (req: Request, res: Response) => {
+
+    const vueltaPrincipal : string= "USE GAM";
+    
+    //@ts-ignore
+    conexion.query(vueltaPrincipal, (err, resultado ) => {
+        if(err) {throw err;}
+        else{
+            console.log("Ejecutando la salida de la base de datos volviento a la principal;")
+        }
+    })
+}
+
+
+
+
 
 //Obtencion de datos principales
 //@ts-ignore
@@ -656,6 +674,11 @@ exports.extraccionDatosMunicipalidad = async (req: Request, res: Response) => {
 
 
 
+
+
+
+/* 
+
 //GESTION DE USUARIOS MUNICIPALES
 
 
@@ -753,7 +776,7 @@ exports.creacionUsuariosMunicipales = async (req: Request, res: Response) => {
 
     /*     const verificacionExistencias: string = "SELECT * FROM usuariomunicipal WHERE rutusuario = ?"
      */
-    const ingresoUsuario: string = "INSERT INTO usuariomunicipal(rutusuario, nombrecompletousuario, permisosusuario, departamentousuario, direccionusuario, telefonousuario, correousuario) VALUES(?,?,?,?,?,?,?)"
+    /* const ingresoUsuario: string = "INSERT INTO usuariomunicipal(rutusuario, nombrecompletousuario, permisosusuario, departamentousuario, direccionusuario, telefonousuario, correousuario) VALUES(?,?,?,?,?,?,?)"
 
 
     conexionFija.query(verificacionPrincipal, [rut], (err, resultadoExistencias) => {
@@ -786,9 +809,9 @@ exports.creacionUsuariosMunicipales = async (req: Request, res: Response) => {
             }
         }
     })
-}
+} */
 
-//MODIFICACION DE USUARIOS     agregar historial
+/* //MODIFICACION DE USUARIOS     agregar historial
 exports.modificacionUsuariosMunicipales = async (req: Request, res: Response) => {
 
     const rut = req.body.rut;
@@ -809,9 +832,9 @@ exports.modificacionUsuariosMunicipales = async (req: Request, res: Response) =>
             res.json({ message: msj });
         }
     })
-}
+} */
 
-exports.eliminarUsuarios = async (req: Request, res: Response) => {
+/* exports.eliminarUsuarios = async (req: Request, res: Response) => {
 
     const rut = req.body.rutusuario;
 
@@ -826,7 +849,8 @@ exports.eliminarUsuarios = async (req: Request, res: Response) => {
     })
 
 }
+ */
 
 
 
-
+ 

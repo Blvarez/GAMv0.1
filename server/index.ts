@@ -43,6 +43,7 @@ app.listen(3001, () => {
 //Controladores
 const controladorAM: any = require("./modules/authentication");
 const controladorBeneficio: any = require("./modules/municipalidad/dideco/beneficios/beneficios");
+const controladorBeneficiarios : any = require("./modules/municipalidad/dideco/beneficios/beneficiarios");
 
 
 //INICIO DE SESION
@@ -83,7 +84,7 @@ app.get("/obtencionDatosDepartamentosSelect", controladorAM.obtencionDatosSelect
     console.log("Carga de datos de los departamentos para el SELECT");
 })
 
-
+ 
 //*********************
 //BENEFICIOS
 //********************* 
@@ -100,7 +101,7 @@ app.delete("/dideco/beneficios/eliminacionBeneficios", controladorBeneficio.elim
 })
 
 
-//Obtencio de datos beneficios para la TABLA
+//Obtencio de datos beneficios para la TABLA 
 //@ts-ignore
 app.get("/dideco/beneficios/datosBeneficios", controladorBeneficio.obtencionDatosBeneficios, (req, res) => {
     console.log("Carga de datos de los Beneficios para la tabla");
@@ -112,7 +113,63 @@ app.get("/dideco/beneficios/datosTiposBeneficios", controladorBeneficio.obtencio
     console.log("Carga de datos de los tipos  de beneficios para el select");
 })
 
+//Obtencio datos beneficios
+//@ts-ignore
+app.post("/dideco/beneficios/obtenerTipoBeneficio", controladorBeneficio.listarModificacionBeneficio, (req, res) => {
+    console.log("Obteniendo datos del Beneficio a modificar");
+})
 
+//Modificacion de Beneficios
+//@ts-ignore
+app.put("/dideco/beneficios/modificarBeneificio", controladorBeneficio.modificiarBeneficio, (req, res) => {
+    console.log("Modificar datos de los beneficios")
+})
+
+//*********************
+//BENEFICIARIOS
+//********************* 
+
+//LISTANDO BENEFICIARIOS
+//@ts-ignore
+app.get("/dideco/beneficiarios/listarbeneficiariospersona", controladorBeneficiarios.listarBeneficiariosPersonas, (req, res) => {
+    console.log("Listando Beneficiarios")
+} )
+
+
+//AGREGANDO BENEFICIARIO
+//@ts-ignore
+app.post("/dideco/beneficiarios/agregarbeneficiario", controladorBeneficiarios.agregarBeneficiario, (req, res) => {
+    console.log("Agregando Beneficiario");
+})
+
+//LISTANDO BENEFICIARIO EN MODAL MODIFICACION
+//@ts-ignore
+app.post("/dideco/beneficiarios/obtenerInformacionBeneficiarios", controladorBeneficiarios.listarModificacionBeneficiario, (req, res) => {
+    console.log("Agregar Beneficiario");
+})
+
+//MODIFICANDO BENEFICIARIO (Datos Basicos)
+//@ts-ignore
+app.put("/dideco/beneficiarios/modificandobeneficiarios", controladorBeneficiarios.modificarBeneficiario, (req, res) => {
+    console.log("Modificando Beneficiario Info Principal");
+})
+
+//MODIFICANDO BENEFICIARIO (Datos Pdf)
+//@ts-ignore
+app.put("/dideco/beneficiarios/modificandobeneficiariospdf", controladorBeneficiarios.modificarPdfBeneficiario, (req, res) => {
+    console.log("Modificando Beneficiario Pdf");
+})
+
+//OBTENER DATOS DEL PDF
+//@ts-ignore
+app.post("/dideco/beneficiarios/obtenerPdf", controladorBeneficiarios.infoPdf, (req, res) => {
+    console.log("Mostrando los datos del pdf");
+})
+
+
+
+
+/* 
 //*************************
 //USUARIOS MUNICIPALES
 //************************* 
@@ -158,3 +215,4 @@ app.post("/municipalidad/gestionusuarios/obtenciondatosusuario", controladorAM.m
 app.delete("/municipalidad/gestionusuarios/elimnacionususario", controladorAM.eliminarUsuarios, (req, res) => {
     console.log("Eliminando usuario");
 })
+ */

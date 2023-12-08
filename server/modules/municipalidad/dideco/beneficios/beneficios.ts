@@ -17,7 +17,7 @@ function contadorArregloSql(arreglo: any) {
 
 }
 
- 
+
 function informacionFecha() {
     const fechaActual = new Date();
     const mesActual = fechaActual.getMonth() + 1;
@@ -65,7 +65,7 @@ exports.obtencionDatosBeneficios = async (req: Request, res: Response) => {
         }
     })
 }
- 
+
 //@ts-ignore
 exports.obtencionTiposBeneficios = async (req: Request, res: Response) => {
     const obtencioTiposBeneficios = "SELECT * FROM tipobeneficio";
@@ -80,88 +80,98 @@ exports.obtencionTiposBeneficios = async (req: Request, res: Response) => {
 
 
 
-exports.creacionBeneficios = async (req: Request, res: Response) => { 
+exports.creacionBeneficios = async (req: Request, res: Response) => {
 
     console.log("Entrando a la funcion creacion de los beneficios")
- 
+
 
     const tipoBeneficio: number = req.body.idtipobeneficio;
     const estadoBeneficio: string = req.body.estadobeneficio;
     const stockBeneficio: number = req.body.stockbeneficio;
     console.log(estadoBeneficio);
 
- 
+
     const queryBusquedaTipoBeneficio = "SELECT * FROM tipobeneficio WHERE idtipobeneficio = ?";
 
     const queryVerificacionExistencias = "SELECT * FROM beneficio WHERE idbeneficio = ?";
 
     const queryIngresoBeneficios = "INSERT INTO beneficio(idbeneficio, idtipobeneficio, estadobeneficio, stockbeneficio) VALUES(?,?,?,?);"
 
-    conexion.query(queryBusquedaTipoBeneficio, [tipoBeneficio], (err, resultadoTipoBeneficio) => {
-        if (err) { throw err; }
-        else {
-            const datosTiposBenefcios = resultadoTipoBeneficio[0]; 
-            if (tipoBeneficio == 1 || tipoBeneficio == 2) {
-                const fecha = informacionFecha();
-                const anio = fecha.Anio;
-                const idBeneficio = datosTiposBenefcios.incialestipobeneficio + anio + "T1";
+    if (stockBeneficio <= 0 || stockBeneficio == undefined || stockBeneficio == null) {
 
-                conexion.query(queryVerificacionExistencias, [idBeneficio], (err4, cantidadBeneficios) => {
-                    if (err4) { throw err4; }
-                    else {
-                        const cantidad: number = contadorArregloSql(cantidadBeneficios);
-                        if (cantidad == 0) {
-                            //@ts-ignore
-                            conexion.query(queryIngresoBeneficios, [idBeneficio, tipoBeneficio ,estadoBeneficio, stockBeneficio], (err2, resultadoFinal) => {
-                                if (err2) { throw err2; }
-                                else {
-                                    console.log("Creacio Completa del Beneficio")
-                                    const mensaje: string = "CBE" //CREACION BENEFICIO EXITOSA
-                                    res.json({ message: mensaje, idBeneficioo: idBeneficio});
-                                }
-                            })
-                        }
+        const mensaje = "EID";
+        res.json({message: mensaje});
+    }
+    
+    else{
+        conexion.query(queryBusquedaTipoBeneficio, [tipoBeneficio], (err, resultadoTipoBeneficio) => {
+            if (err) { throw err; }
+            else {
+                const datosTiposBenefcios = resultadoTipoBeneficio[0];
+                if (tipoBeneficio == 1 || tipoBeneficio == 2) {
+                    const fecha = informacionFecha();
+                    const anio = fecha.Anio;
+                    const idBeneficio = datosTiposBenefcios.incialestipobeneficio + anio + "T1";
+
+                    conexion.query(queryVerificacionExistencias, [idBeneficio], (err4, cantidadBeneficios) => {
+                        if (err4) { throw err4; }
                         else {
-                            const mensaje : string = "CBYE" //CREACION BENEFICIO YA EXISTE
-                            res.json({message: mensaje, idBeneficioo: idBeneficio});
+                            const cantidad: number = contadorArregloSql(cantidadBeneficios);
+                            if (cantidad == 0) {
+                                //@ts-ignore
+                                conexion.query(queryIngresoBeneficios, [idBeneficio, tipoBeneficio, estadoBeneficio, stockBeneficio], (err2, resultadoFinal) => {
+                                    if (err2) { throw err2; }
+                                    else {
+                                        console.log("Creacio Completa del Beneficio")
+                                        const mensaje: string = "CBE" //CREACION BENEFICIO EXITOSA
+                                        res.json({ message: mensaje, idBeneficioo: idBeneficio });
+                                    }
+                                })
+                            }
+                            else {
+                                const mensaje: string = "CBYE" //CREACION BENEFICIO YA EXISTE
+                                res.json({ message: mensaje, idBeneficioo: idBeneficio });
+                            }
                         }
-                    }
-                })
+                    })
+
+
+                }
+
+                else {
+                    const fecha = informacionFecha();
+                    const anio = fecha.Anio;
+                    const idBeneficio = datosTiposBenefcios.incialestipobeneficio + anio + "T2";
+
+                    conexion.query(queryVerificacionExistencias, [idBeneficio], (err4, cantidadBeneficios) => {
+                        if (err4) { throw err4; }
+                        else {
+                            const cantidad: number = contadorArregloSql(cantidadBeneficios);
+                            if (cantidad == 0) {
+                                //@ts-ignore
+                                conexion.query(queryIngresoBeneficios, [idBeneficio, tipoBeneficio, estadoBeneficio, stockBeneficio], (err2, resultadoFinal) => {
+                                    if (err2) { throw err2; }
+                                    else {
+                                        console.log("Creacio Completa del Beneficio")
+                                        const mensaje: string = "CBE" //CREACION BENEFICIO EXITOSA
+                                        res.json({ message: mensaje, idBeneficioo: idBeneficio });
+                                    }
+                                })
+                            }
+                            else {
+                                const mensaje: string = "CBYE" //CREACION BENEFICIO YA EXISTE
+                                res.json({ message: mensaje, idBeneficioo: idBeneficio });
+                            }
+                        }
+                    })
+                }
 
 
             }
+        })
+    }
 
-            else{
-                const fecha = informacionFecha();
-                const anio = fecha.Anio;
-                const idBeneficio = datosTiposBenefcios.incialestipobeneficio + anio;
 
-                conexion.query(queryVerificacionExistencias, [idBeneficio], (err4, cantidadBeneficios) => {
-                    if (err4) { throw err4; }
-                    else {
-                        const cantidad: number = contadorArregloSql(cantidadBeneficios);
-                        if (cantidad == 0) {
-                            //@ts-ignore
-                            conexion.query(queryIngresoBeneficios, [idBeneficio, tipoBeneficio, estadoBeneficio, stockBeneficio], (err2, resultadoFinal) => {
-                                if (err2) { throw err2; }
-                                else {
-                                    console.log("Creacio Completa del Beneficio")
-                                    const mensaje: string = "CBE" //CREACION BENEFICIO EXITOSA
-                                    res.json({ message: mensaje , idBeneficioo: idBeneficio});
-                                }
-                            })
-                        }
-                        else {
-                            const mensaje : string = "CBYE" //CREACION BENEFICIO YA EXISTE
-                            res.json({message: mensaje, idBeneficioo: idBeneficio});
-                        }
-                    }
-                })
-            }
-
-            
-        }
-    })
 
 }
 
@@ -193,8 +203,8 @@ exports.eliminacionBeneficio = async (req: Request, res: Response) => {
 
                         if (cantidadSolicitudesConBeneficio > 0) {
                             console.log("El Beneficio ya cuenta con unas solicitudes ya asimiladas, ver eliminar esas solicitudes o no se podra eliminar;")
-                            const msjj : string = "FBE"; //BENEFICIO YA TIENE UNA SOLICITUD
-                            res.json({message: msjj})
+                            const msjj: string = "FBE"; //BENEFICIO YA TIENE UNA SOLICITUD
+                            res.json({ message: msjj })
                         }
 
                         if (cantidadSolicitudesConBeneficio == 0) {
@@ -203,8 +213,8 @@ exports.eliminacionBeneficio = async (req: Request, res: Response) => {
                                 if (err2) { throw err2; }
                                 else {
                                     console.log("Eliminacion Exitosa de Beneficio, mandar algo al Front-End");
-                                    const msj : string = "BEE"; //BENEFICIO ELIMINADO EXITOSAMENTE
-                                    res.json({message: msj});
+                                    const msj: string = "BEE"; //BENEFICIO ELIMINADO EXITOSAMENTE
+                                    res.json({ message: msj });
                                 }
                             })
                         }
@@ -216,37 +226,109 @@ exports.eliminacionBeneficio = async (req: Request, res: Response) => {
 
             else {
                 console.log("Id de Beneficio no existe reingresar una correcta, mandar alerta al front");
-                const msjjj : string = "NE"; //NO EXISTE EL BENEFICIO
-                res.json({message: msjjj});
-            } 
+                const msjjj: string = "NE"; //NO EXISTE EL BENEFICIO
+                res.json({ message: msjjj });
+            }
         }
     })
 }
+
+
 //@ts-ignore
 exports.modificiarBeneficio = async (req: Request, res: Response) => {
     const stockBeneficio = req.body.stockbeneficio;
     const idBeneficio = req.body.idbene;
-
+    /*     const rutusuario = req.body.rutususario;            
+     */
     const queryVerificacionSinSolicitudes = "SELECT * FROM solicitudes WHERE idbeneficiosol = ?;"
     const queryActualizarStockBeneficio = "UPDATE beneficio  SET stockbeneficio = ? WHERE idbeneficio = ?";
-
+    /*     const modHistorial = "INSERT INTO historial(accion, idaccionada, tipo, rutusuarioaccion, observacionaccion) VALUES(?,?,?,?,?);"     IMPLEMENTAR LA ACCION DE GUARDAR EN EL HISTORIAL
+     */
     conexion.query(queryVerificacionSinSolicitudes, [idBeneficio], (err1, cantidadSolicitudes) => {
-        if(err1) {throw err1;}
-        else{
+        if (err1) { throw err1; }
+        else {
             const cantidadSoli = contadorArregloSql(cantidadSolicitudes);
-            if(cantidadSoli > 0){
+            if (cantidadSoli > 0) {
                 console.log("No se puede eliminar porque ya a ha sido enlazada a una Solicitud");
             }
-            else{
+            else {
                 //@ts-ignore
                 conexion.query(queryActualizarStockBeneficio, [stockBeneficio, idBeneficio], (err2, resultadoActua) => {
-                    if(err2) {throw err2;}
-                    else{
-                        console.log("A sido Actualizado exitosamente");
+                    if (err2) { throw err2; }
+                    else {
+                        const msj: string = "BAE"; //BENEFICIO ACTUALIZADO EXITOSAMENTE
+                        res.json({ message: msj });
                     }
                 })
             }
         }
     })
+
 }
 
+//@ts-ignore
+exports.listarModificacionBeneficio = async (req: Request, res: Response) => {
+
+    const idBeneficio: string = req.body.idbene;
+
+    const iniciales = idBeneficio.substring(0, 2);
+
+
+
+    const consultarBeneficio = "SELECT * FROM beneficio";
+    //@ts-ignore
+    const consultarTipoBeneficio = "SELECT * FROM tipobeneficio WHERE incialestipobeneficio = ?";
+
+
+    conexion.query(consultarBeneficio, [idBeneficio], (err, infoBeneficio) => {
+        if (err) { throw err; }
+
+        else {
+
+            const idbene: string = infoBeneficio[0].idbeneficio;
+
+            //@ts-ignore
+            const caracteresIniciales = idbene.substring(0, 2);
+            //@ts-ignore
+            const stock: number = infoBeneficio[0].stockbeneficio;
+            const estadoBeneficio = infoBeneficio[0].estadobeneficio;
+            //@ts-ignore
+            let nombreEstado: string = "";
+            if (estadoBeneficio == 1) {
+                nombreEstado = "Por Postulacion";
+            }
+            else if (estadoBeneficio == 2) {
+                nombreEstado = "Por Entrega Inmediata";
+            }
+
+            conexion.query(consultarTipoBeneficio, [iniciales], (err2, infoTipoBeneficio) => {
+
+                if (err2) { throw err2; }
+                else {
+
+                    const datosTB = infoTipoBeneficio[0];
+                    const nombreTB = datosTB.nombretipobeneficio;
+                    const descripcionTB = datosTB.descripciontipobeneficio;
+                    const cantidadPorPersona = datosTB.cantidadAnualPersona;
+
+                    console.log(datosTB, nombreTB, descripcionTB, cantidadPorPersona, "DAtos del beneficio")
+
+                    let nombreCantidad: string = "";
+
+                    if (cantidadPorPersona == 3) {
+                        nombreCantidad = "Cuatrimestral";
+                    }
+                    else if (cantidadPorPersona == 12) {
+                        nombreCantidad = "Mensual"
+                    }
+
+
+                    res.json({ nombreTipoBeneficio: nombreTB, descripcionTipoBeneficio: descripcionTB, stockBeneficio: stock, cantidadA: nombreCantidad, estadoBeneObtencion: nombreEstado });
+                }
+            })
+
+        }
+    })
+
+
+}

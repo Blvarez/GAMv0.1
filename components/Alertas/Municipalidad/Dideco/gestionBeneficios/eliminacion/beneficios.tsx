@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTimes } from "@fortawesome/free-solid-svg-icons"
 import { useState } from "react";
 import axios from "axios";
-import RespuestaEliminacion from "./respuestaEliminacion";
+import RespuestaEliminacion from "./respuestaEliminacionBeneficio";
 
 interface Props {
     estadoModalBeneficioEli: boolean,
