@@ -38,12 +38,12 @@ function contadorArregloSql(arreglo: any) {
 //@ts-ignore
 exports.cierreSesion = async (req: Request, res: Response) => {
 
-    const vueltaPrincipal : string= "USE GAM";
-    
+    const vueltaPrincipal: string = "USE GAM";
+
     //@ts-ignore
-    conexion.query(vueltaPrincipal, (err, resultado ) => {
-        if(err) {throw err;}
-        else{
+    conexion.query(vueltaPrincipal, (err, resultado) => {
+        if (err) { throw err; }
+        else {
             console.log("Ejecutando la salida de la base de datos volviento a la principal;")
         }
     })
@@ -158,8 +158,8 @@ exports.ingresoMunicipalidad = async (req: Request, res: Response) => {
     const crearBaseDeDatosPrincipalMunicipalParte2: string = "CREATE TABLE permisos(idpermiso int PRIMARY KEY, nombrepermiso varchar(50), descripcionpermiso LONGTEXT, puntuacionpermiso int);";
     const crearBaseDeDatosPrincipalMunicipalParte3: string = "CREATE TABLE persona(rutpersona varchar(10) PRIMARY KEY, nombrecompleto varchar(120), edadpersona int, direccionpersona varchar(100), telefonopersona int, correopersona varchar(100));";
 
-
-
+ 
+   
     //AQUI PARA ADELANTE ES LA CREACION PARA EL DEPARTAMENTO DE DIDECO
 
     const crearTipoBeneficio = "CREATE TABLE tipobeneficio(idtipobeneficio int Primary Key, nombreBeneficio varchar(50), incialestipobeneficio varchar(4), cantidadAnualPersona int);"
@@ -329,88 +329,101 @@ exports.ingresoMunicipalidad = async (req: Request, res: Response) => {
         }
     }
 
+    const validarRut = (inputRut: string) => {
+        const rutSinFormato = inputRut.replace(/\./g, '');
+        const regexRut = /^(\d{1,9}-[\dkK])$/;
+        return regexRut.test(rutSinFormato);
+    };
+
+    if (validarRut(rutusuarioprincipal) == false || validarRut(rutusuarioprincipal) == false) {
+        const mensajeError = "FECB";
+        res.json({ message: mensajeError });
+    }
+    else {
+        conexion.query(confirmacionUsuario, [rutusuarioprincipal], (err1, usuariosRut) => { //COMPROBAMOS SI YA EXISTE UN USUARIO CON EL MISMO RUT
+            if (err1) { throw err1; }
+
+            const cantidadUsuarios: number = contadorArregloSql(usuariosRut);
+
+            if (cantidadUsuarios == 0) {
+                //@ts-ignore
+                conexion.query(ingresoConfirmacionNuevoUsuario, [rutusuarioprincipal, nombreusuario, hashcontraseniaprincipal, nombreBaseMunicipalidad], (err2, ingresoNuevoUsusario) => { //INGRESAMOS EL NUEVO USUARIO ENCADENADO A LA CREACION DE LA NUEVA BASE DE DATOS
+                    if (err2) { throw err2; }
+                    else {
+                        conexion.query(busquedaBasesDeDatos, [nombreBaseMunicipalidad], (err3, baseDatos) => { //COMPROBACION LA BASE DE DATOS YA EXISTE
+                            if (err3) { throw err3; }
+                            const cantidadBaseDatos: number = contadorArregloSql(baseDatos);
+
+                            if (cantidadBaseDatos == 0) {
+                                //@ts-ignore
+                                conexion.query(baseDatosCreadas, [nombreBaseMunicipalidad, departamentosACrear], (err19, crearBaseTabla) => { //INGRESAMOS LOS DATOS A LA TABLA MUNICIPALIDADES CREADAS
+                                    if (err19) { throw err19; }
+                                    else {
+
+                                        //@ts-ignore
+                                        conexion.query(creacionBaseDatosNombre, (err4, creacion) => { //CREAMOS LA BASE DE DATOS MUNICIPAL NUEVA
+                                            if (err4) { throw err4; }
+
+                                            else {
+                                                //@ts-ignore
+                                                conexion.query(usarBaseDeDatosMunicipal, (err5, usandoBaseDatosMunicipal) => {
+                                                    if (err5) { throw err5; }
+                                                    else {
+                                                        //@ts-ignore
+                                                        conexion.query(crearBaseDeDatosPrincipalMunicipalParte1, (err6, creandoBaseDatosMunicipalTablas1) => {
+                                                            if (err6) { throw err6; }
+                                                            else {
+                                                                //@ts-ignore
+                                                                conexion.query(crearBaseDeDatosPrincipalMunicipalParte2, (err20, creandoBaseDatosMunicipalTablas2) => {
+                                                                    if (err20) { throw err20; }
+                                                                    else {
+                                                                        //@ts-ignore
+                                                                        conexion.query(crearBaseDeDatosPrincipalMunicipalParte3, (err21, creandoBaseDatosMunicipalTablas3) => {
+                                                                            if (err21) { throw err21; }
+                                                                            else {
+
+                                                                                crearDepartamentos();
+
+                                                                            }
+                                                                        })
+                                                                    }
+                                                                })
 
 
 
-    conexion.query(confirmacionUsuario, [rutusuarioprincipal], (err1, usuariosRut) => { //COMPROBAMOS SI YA EXISTE UN USUARIO CON EL MISMO RUT
-        if (err1) { throw err1; }
-
-        const cantidadUsuarios: number = contadorArregloSql(usuariosRut);
-
-        if (cantidadUsuarios == 0) {
-            //@ts-ignore
-            conexion.query(ingresoConfirmacionNuevoUsuario, [rutusuarioprincipal, nombreusuario, hashcontraseniaprincipal, nombreBaseMunicipalidad], (err2, ingresoNuevoUsusario) => { //INGRESAMOS EL NUEVO USUARIO ENCADENADO A LA CREACION DE LA NUEVA BASE DE DATOS
-                if (err2) { throw err2; }
-                else {
-                    conexion.query(busquedaBasesDeDatos, [nombreBaseMunicipalidad], (err3, baseDatos) => { //COMPROBACION LA BASE DE DATOS YA EXISTE
-                        if (err3) { throw err3; }
-                        const cantidadBaseDatos: number = contadorArregloSql(baseDatos);
-
-                        if (cantidadBaseDatos == 0) {
-                            //@ts-ignore
-                            conexion.query(baseDatosCreadas, [nombreBaseMunicipalidad, departamentosACrear], (err19, crearBaseTabla) => { //INGRESAMOS LOS DATOS A LA TABLA MUNICIPALIDADES CREADAS
-                                if (err19) { throw err19; }
-                                else {
-
-                                    //@ts-ignore
-                                    conexion.query(creacionBaseDatosNombre, (err4, creacion) => { //CREAMOS LA BASE DE DATOS MUNICIPAL NUEVA
-                                        if (err4) { throw err4; }
-
-                                        else {
-                                            //@ts-ignore
-                                            conexion.query(usarBaseDeDatosMunicipal, (err5, usandoBaseDatosMunicipal) => {
-                                                if (err5) { throw err5; }
-                                                else {
-                                                    //@ts-ignore
-                                                    conexion.query(crearBaseDeDatosPrincipalMunicipalParte1, (err6, creandoBaseDatosMunicipalTablas1) => {
-                                                        if (err6) { throw err6; }
-                                                        else {
-                                                            //@ts-ignore
-                                                            conexion.query(crearBaseDeDatosPrincipalMunicipalParte2, (err20, creandoBaseDatosMunicipalTablas2) => {
-                                                                if (err20) { throw err20; }
-                                                                else {
-                                                                    //@ts-ignore
-                                                                    conexion.query(crearBaseDeDatosPrincipalMunicipalParte3, (err21, creandoBaseDatosMunicipalTablas3) => {
-                                                                        if (err21) { throw err21; }
-                                                                        else {
-
-                                                                            crearDepartamentos();
-
-                                                                        }
-                                                                    })
-                                                                }
-                                                            })
+                                                            }
+                                                        })
+                                                    }
+                                                })
 
 
 
-                                                        }
-                                                    })
-                                                }
-                                            })
+                                            }
+                                        })
+                                    }
+                                })
+                            }
+                            if (cantidadBaseDatos > 0) {
+                                const msj: string = "BDE";
+                                res.json({ message: msj })
+
+                            }
+
+                        })
+                    }
+                })
+            }
+            if (cantidadUsuarios > 0) {
+                console.log("Aqui hay que poner que devuelva un valor que indique que el usuario ya existe por lo cual despliega una alerta o ventana modal.")
+                const msj: string = "CBDE";
+                res.json({ message: msj })
+            }
+
+        })
+    }
 
 
 
-                                        }
-                                    })
-                                }
-                            })
-                        }
-                        if (cantidadBaseDatos > 0) {
-                            console.log("Aqui hay que poner que la base de datos ya fue creada y si es que quiera modificar la cantidad de departamentos que se le brindan.")
-
-                        }
-
-                    })
-                }
-            })
-        }
-        if (cantidadUsuarios > 0) {
-            console.log("Aqui hay que poner que devuelva un valor que indique que el usuario ya existe por lo cual despliega una alerta o ventana modal.")
-            const msj: string = "CBDE";
-            res.json({ message: msj })
-        }
-
-    })
 
 }
 
@@ -592,7 +605,8 @@ exports.inicioSesion = async (req: Request, res: Response) => {
                                 }
                                 else { //MUNICIPALIDAD BLOQUEADA SIN ACCESO PARA LOS USUARIOS CONTACTAR CON ADMINISTRADORES PRINCIPALES
                                     const msjjj: string = "AB"; //ACCESO BLOQUEADO
-                                    res.json({ message: msjjj });
+                                    console.log("Municipalidad Bloqueada")
+                                    res.json({ mensaje: msjjj });
                                 }
 
 
@@ -611,9 +625,9 @@ exports.inicioSesion = async (req: Request, res: Response) => {
             })
 
         }
-  
 
-    
+
+
 
     })
 
@@ -776,39 +790,39 @@ exports.creacionUsuariosMunicipales = async (req: Request, res: Response) => {
 
     /*     const verificacionExistencias: string = "SELECT * FROM usuariomunicipal WHERE rutusuario = ?"
      */
-    /* const ingresoUsuario: string = "INSERT INTO usuariomunicipal(rutusuario, nombrecompletousuario, permisosusuario, departamentousuario, direccionusuario, telefonousuario, correousuario) VALUES(?,?,?,?,?,?,?)"
+/* const ingresoUsuario: string = "INSERT INTO usuariomunicipal(rutusuario, nombrecompletousuario, permisosusuario, departamentousuario, direccionusuario, telefonousuario, correousuario) VALUES(?,?,?,?,?,?,?)"
 
 
-    conexionFija.query(verificacionPrincipal, [rut], (err, resultadoExistencias) => {
-        if (err) { throw err; }
-        else {
-            const cantidad = contadorArregloSql(resultadoExistencias);
+conexionFija.query(verificacionPrincipal, [rut], (err, resultadoExistencias) => {
+    if (err) { throw err; }
+    else {
+        const cantidad = contadorArregloSql(resultadoExistencias);
 
-            if (cantidad > 0) {
-                console.log("Usuario ya existe");
-                const msj: string = "UYA" //USUARIO YA EXISTE
-                res.json({ message: msj });
-            }
-            else {
-                //@ts-ignore
-                conexion.query(ingresoUsuario, [rut, nombre, permisos, departamentos, direccion, telefono, correo], (err1, ingreso) => {
-                    if (err1) { throw err1; }
-                    else {
-                        //@ts-ignore
-                        conexionFija.query(creacionPrincipal, [rut, nombre, contrasenia, municipalidad, permisos], (err23, resultadoa) => {
-                            if (err23) { throw err23; }
-                            else {
-                                console.log("Creacion del usuario exitosa");
-                                const msjj: string = "URE" // USUARIO REGISTRADO EXITOSAMENTE
-                                res.json({ message: msjj });
-                            }
-                        })
-
-                    }
-                })
-            }
+        if (cantidad > 0) {
+            console.log("Usuario ya existe");
+            const msj: string = "UYA" //USUARIO YA EXISTE
+            res.json({ message: msj });
         }
-    })
+        else {
+            //@ts-ignore
+            conexion.query(ingresoUsuario, [rut, nombre, permisos, departamentos, direccion, telefono, correo], (err1, ingreso) => {
+                if (err1) { throw err1; }
+                else {
+                    //@ts-ignore
+                    conexionFija.query(creacionPrincipal, [rut, nombre, contrasenia, municipalidad, permisos], (err23, resultadoa) => {
+                        if (err23) { throw err23; }
+                        else {
+                            console.log("Creacion del usuario exitosa");
+                            const msjj: string = "URE" // USUARIO REGISTRADO EXITOSAMENTE
+                            res.json({ message: msjj });
+                        }
+                    })
+
+                }
+            })
+        }
+    }
+})
 } */
 
 /* //MODIFICACION DE USUARIOS     agregar historial
@@ -853,4 +867,89 @@ exports.modificacionUsuariosMunicipales = async (req: Request, res: Response) =>
 
 
 
- 
+exports.obtenerDatosMunicipales = async (req: Request, res: Response) => {
+
+    const valorMuni = req.body.muni;
+
+    const consultaInfo: string = "SELECT * FROM estadomunicipalidad WHERE valormunicipalidadcreada = ?";
+    const consulta: string = "SELECT * FROM datamunicipalidad WHERE valormunicipalidad = ?"
+
+    conexion.query(consultaInfo, [valorMuni], (err, result) => {
+        if (err) { throw err; }
+        else {
+            const info = result[0];
+            const estadoMuni = info.estadoMunicipalidad;
+            conexion.query(consulta, [valorMuni], (err2, result2) => {
+                if (err2) { throw err2; }
+                else {
+                    const infoo = result2[0];
+                    const nombre = infoo.nombremunicipalidad;
+
+                    res.json({ nombree: nombre, estado: estadoMuni });
+                }
+            })
+        }
+    })
+}
+
+exports.obtenerDatosMunicipalesRut = async (req: Request, res: Response) => {
+
+    const rut = req.body.rut;
+
+    const consultaInfo: string = "SELECT * FROM usuariosprincipal WHERE rutprincipal = ?";
+    const consulta: string = "SELECT * FROM estadomunicipalidad WHERE valormunicipalidadcreada = ?"
+
+    conexion.query(consultaInfo, [rut], (err, result) => {
+        if (err) { throw err; }
+        else {
+            const info = result[0];
+            const valorMuni = info.valormunicipalidadprincipal;
+            conexion.query(consulta, [valorMuni], (err2, result2) => {
+                if (err2) { throw err2; }
+                else {
+                    const infoo = result2[0];
+                    const estadoMuni = infoo.estadoMunicipalidad;
+
+                    res.json({ valor: valorMuni, estado: estadoMuni });
+                }
+            })
+        }
+    })
+}
+
+
+exports.modificarDatosMunicipalies = async (req: Request, res: Response) => {
+
+    const muni = req.body.munii;
+    console.log(muni);
+    const estado = req.body.estadoN;
+    console.log(estado, "este es el estado");
+
+
+    const modificacion: string = "UPDATE estadomunicipalidad SET estadoMunicipalidad = ? WHERE valormunicipalidadcreada = ?";
+    //@ts-ignore
+    conexion.query(modificacion, [estado, muni], (err, result) => {
+        if (err) { throw err; }
+        else {
+            const mensaje = "ME";
+            res.json({ message: mensaje });
+        }
+    })
+
+}
+
+
+//@ts-ignore
+exports.cerrarSesion = async (req: Request, res: Response) => {
+
+    const vueltaPrincipal : string = "USE GAM";
+    //@ts-ignore
+    conexion.query(vueltaPrincipal, (err, result) => {
+        if(err) {throw err;}
+        else{
+            console.log("Cerrando sesion")
+            const mensajeEliminacion = "CS";
+            res.json({message: mensajeEliminacion});
+        }
+    })
+}

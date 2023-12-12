@@ -1,106 +1,105 @@
-//import React, { /* useEffect, */ useState } from "react";
-/* import axios from "axios";
- */
-/* interface Props {
-    usuario: string;
-}
-
-
-export default function ({ usuario }: Props) {
-
-    let imagen: string = "https://i.ibb.co/JkvcFTD/cropped-LOGO-10-ANOS2-1.png";
-
-    //@ts-ignore
-    const [nuevaImagen, setnuevaImagen] = useState<Blob | null>(null);
-
-    let boton = null;
-    let dondeVaUsuario = null
-
-    if(usuario != null || usuario != undefined || usuario != ""){
-        dondeVaUsuario=(
-            <h1 className="ml-2 text-white font-bold">Usuario: {usuario}</h1>
-        )
-        boton=(
-            <button>Cierre Sesion</button>
-        )
-    }
-    else{
-        <h1 className="ml-2 text-white font-bold"></h1>
-
-    }
-
-    return (
-        <nav className="bg-[#003352] w-full flex items-center">
-            {dondeVaUsuario}
-            <div className="flex items-center mx-auto">
-                {nuevaImagen != null ? (
-                    <img src={URL.createObjectURL(nuevaImagen)}></img>
-                ) : (
-                    <img className="h-20" src={imagen}></img>
-                )}
-            </div>
-        </nav>
-    )
-}    */
-
-
-
 import React, { useEffect, useState } from "react";
+import jwt from "jsonwebtoken";
+import Cookies from "universal-cookie";
+import axios from "axios";
 
-interface Props {
-  usuario: string;
-}
 
-const NavBar: React.FC<Props> = ({ usuario }) => {
-    //@ts-ignore
-  const [nuevaImagen, setNuevaImagen] = useState<Blob | null>(null);
-  const [mostrarContenido, setMostrarContenido] = useState(false);
+
+export default function Navbar() {
+
+
+  const [usuario, setUsuario] = useState<string>();
+  const [permisosNav, setPermisosNav] = useState<number>(0);
 
   useEffect(() => {
-    // Aquí puedes verificar la existencia de la cookie
-    const cookieExistente = document.cookie.includes("muni");
+    const cookie = new Cookies();
 
-    if (cookieExistente) {
-      borrarCookie();
-      redirigirAInicio();
-      setMostrarContenido(false);
-    } else {
-      setMostrarContenido(true);
+    const valorCookie = cookie.get("muni");
+    console.log(valorCookie, "Este es el valor de la cookie");
+
+
+    const valoresCookies: any = jwt.decode(valorCookie);
+
+
+    if (valoresCookies == null) {
+      setPermisosNav(0);
     }
-  }, [usuario]);
+    else {
+      setPermisosNav(1);
+      const usu = valoresCookies["nombreG"];
+      setUsuario(usu);
 
-  const borrarCookie = () => {
+    }
+  }, [])
+
+  const cerrrarSesion = async () => {
+    await axios({
+      method: "get",
+      url: "http://localhost:3001/cerrarSesionCompleto",
+      withCredentials: true
+    }).then((response) => {
+      const llegando = response.data;
+      if (llegando.mensaje == "EP") {
+        console.log("Sesion Cerrada y Eliminada la cookie")
+      }
+
+    })
+  }
+
+  const eliminarCookie = () => {
     document.cookie = "muni=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  };
-
-  const redirigirAInicio = () => {
     window.location.href = "/";
-  };
+  }
 
-  const cerrarSesion = () => {
-    // Puedes llamar a esta función cuando el usuario hace clic en "Cerrar Sesión"
-    borrarCookie();
-    redirigirAInicio();
-    setMostrarContenido(false);
-  };
+  const cerrarSesionFusion = () => {
+    eliminarCookie();
+    cerrrarSesion();
+  }
 
-  return (
-    <nav className="bg-[#003352] w-full flex items-center">
-      {mostrarContenido && (
-        <>
-          <button onClick={cerrarSesion}>Cerrar Sesión</button>
-          <h1 className="ml-2 text-white font-bold">Usuario: {usuario}</h1>
-        </>
-      )}
-      <div className="flex items-center mx-auto">
-        {nuevaImagen != null ? (
-          <img src={URL.createObjectURL(nuevaImagen)} alt="Imagen"></img>
-        ) : (
-          <img className="h-20" src="https://i.ibb.co/JkvcFTD/cropped-LOGO-10-ANOS2-1.png" alt="Logo"></img>
-        )}
-      </div>
-    </nav>
-  );
-};
 
-export default NavBar;
+  let imagen: string = "https://i.ibb.co/JkvcFTD/cropped-LOGO-10-ANOS2-1.png";
+
+  //@ts-ignore
+  const [nuevaImagen, setnuevaImagen] = useState<Blob | null>(null);
+
+  let navBar = null;
+
+  if (permisosNav == 0) {
+    navBar = (
+      <nav className="bg-[#003352] w-full flex items-center">
+        <div className="flex items-center mx-auto">
+          {nuevaImagen != null ? (
+            <img src={URL.createObjectURL(nuevaImagen)}></img>
+          ) : (
+            <img className="h-20" src={imagen}></img>
+          )}
+        </div>
+      </nav>
+    )
+  }
+  else {
+    navBar = (
+      <nav className="bg-[#003352] w-full flex items-center">
+        <div className="p-3">
+          <h1 className="text-xl"><strong><u>Usuario: {usuario}</u> </strong> </h1>
+        </div>
+        <div className="flex items-center mx-auto">
+          {nuevaImagen != null ? (
+            <img src={URL.createObjectURL(nuevaImagen)}></img>
+          ) : (
+            <img className="h-20" src={imagen}></img>
+          )}
+        </div>
+        <div className="p-3">
+          <button onClick={() => cerrarSesionFusion()} className="bg-[#427DA2] rounded-lg text-xl "><strong>Cerrar Sesion</strong></button>
+
+        </div>
+      </nav>
+    )
+  }
+
+
+
+  return navBar;
+}
+

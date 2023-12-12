@@ -4,33 +4,38 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import MUIDataTable from "mui-datatables";
 import React from "react";
+import VentanaModBeneficio from "../../modificacion/Modalbeneficiomod";
+import RespuestaMasivas from "../respuestaMasivas";
+
+interface Props {
+    estadoModalSoliMasAgr: boolean,
+    cambioEstadoModalSoliMasAgr: (nuevoEstado: boolean) => void
+}
+
+
+export default function SolicitudesMas({ estadoModalSoliMasAgr, cambioEstadoModalSoliMasAgr }: Props) {
 
 
 
-export default function ModalSoliMasAgr({ estadoModalSoliMasAgr, cambioEstadoModalSoliMasAgr }) {
-
-
-    const [soliBeneficiarios, setSoliBeneficiarios] = useState();
-
-    const [idBeneficio, setIdBeneficio] = useState();
 
     const [arrayRuts, setArrayRuts] = useState([]);
 
-    const [selectedRows, setSelectedRows] = useState([]);
+    const [respuestaMas, setRespuestaMas] = useState(false);
 
-    const [ccantidad, setCcantidad] = useState();
-    const [ccantidadBeneficio, setCcantidadBeneficio] = useState();
+    /*     const [selectedRows, setSelectedRows] = useState([]);
+     */
 
-    const handleRowSelection = (currentRowsSelected, allRowsSelected) => {
-
-        const rutsNuevos = allRowsSelected.map(rows => soliBeneficiarios[rows.index].rutbeneficiario);
+    //@ts-ignore
+    const handleRowSelection = (currentRowsSelected, allRowsSelected: any) => {
+        //@ts-ignore
+        const rutsNuevos = allRowsSelected.map(rows => datosBeneficiarios[rows.index].rutbeneficiario);
         setArrayRuts(rutsNuevos);
 
     }
 
-    useEffect(() => {
-        console.log(selectedRows);
-    }, [selectedRows]); 
+    /*     useEffect(() => {
+            console.log(selectedRows);
+        }, [selectedRows]); */
 
 
 
@@ -45,109 +50,135 @@ export default function ModalSoliMasAgr({ estadoModalSoliMasAgr, cambioEstadoMod
             method: "post",
             data: {
                 arrayRutBene: arrayRuts,
-                idbeneficio: idBeneficio,
+                idbeneficio: beneficioSelect,
                 cantidadRut: cantidad
             },
-            url: "http://localhost:3001/dideco/gestionbeneficios/crudsolicitud/agregarmas",
+            url: "http://localhost:3001/dideco/solicitudes/creacionSolicitudesMas",
             withCredentials: true
         }).then((response) => {
             const mensaje = response.data.message;
-            const cantidadd = response.data.cantida;
-            const cantidadBeneficio = response.data.cantidadBene;
 
-            //Creo * asignaciones/postulaciones para el beneficio * que tiene un stock de entrega de *
+            if (mensaje == "CPSM") {
+                setRespuestaMas(true);
+                console.log("Creacion exitosa de las solicitudes Masivas");  //CREAR ALERTA QUE INDIQUE LA CANTIDAD IGUAL
+                
+            }
 
-            setCcantidad(cantidadd);
-            setCcantidadBeneficio(cantidadBeneficio);
 
-            if (mensaje == "BNE") {
-                cambioEstadomodalbeneficionoexiste(true);
-            }
-            if(mensaje == "CMA"){ //ASIGNACION
-                cambioEstadomodalsoliasigagrmasace(true);
-            }
-            if(mensaje == "CMP"){ //POSTULACION
-                cambioEstadomodalsolipostagrmasace(true);
-            }
         })
 
     }
 
 
 
-    const url = "http://localhost:3001/dideco/gestionbeneficios/crudbeneficiario/listarBeneficiarios";
-
-    const verificarBeneficio = () => {
-        console.log("entro aca al beneficio")
-        axios({
-            method: "post",
-            data: {
-                idbeneficio: idBeneficio
-            },
-            url: "http://localhost:3001/dideco/gestionbeneficios/crudsolicitud/verificacionBeneficio",
-            withCredentials: true
-        }).then((response) => {
-            console.log(response)
-            const mensaje = response.data.message;
-            if (mensaje == "BNE") {
-                cambioEstadomodalbeneficionoexiste(true);
-            }
-            if (mensaje == "IBIO") {
-                cambioEstadomodalvbeneficiobloq(true);
-            }
-        })
-    }
 
 
-
-    const obtenerBeneficiarios = async () => {
-        await axios.get(url).then((response) => {
-            const data = response.data;
-            setSoliBeneficiarios(data);
-        })
-    }
 
     useEffect(() => {
         if (estadoModalSoliMasAgr == true) {
-            obtenerBeneficiarios();
+            obtencionDatosBeneficiarios();
+            obtencionDatosBeneficios();
         }
     }, [estadoModalSoliMasAgr])
 
 
 
-    const columns = [
+    const columnas = [
         {
             name: "rutbeneficiario",
-            label: "RUT"
+            label: "RUT",
+            options:{
+                filter: false
+            }
         },
         {
-            name: "porcentajerh",
+            name: "porcentajerhbeneficiario",
             label: "PORCENTAJE RH"
 
         }
 
     ]
 
-    const options = {
+    const opciones: any = {
+        selectableRows: "multiple",
         print: false,
         download: false,
-        viewColumns: false,
-        filter: true,
-        responsive: "scroll",
-        rowHeight: 100,
         rowsPerPage: 5,
         rowsPerPageOptions: [5],
+        viewColumns: false,
         onRowsSelect: handleRowSelection,
-        customToolbarSelect: () => (
-            <React.Fragment>
-            </React.Fragment>
-        )
+        filter: true, textLabels: {
+            body: {
+                noMatch: "No se encontraron registros",
+                toolTip: "Ordenar",
+            },
+            pagination: {
+                next: "Siguiente",
+                previous: "Anterior",
+                rowsPerPage: "Filas por página:",
+                displayRows: "de",
+            },
+            toolbar: {
+                search: "Buscar",
+                downloadCsv: "Descargar CSV",
+                print: "Imprimir",
+                viewColumns: "Ver Columnas",
+                filterTable: "Filtrar Tabla",
+            },
+            filter: {
+                all: "Todos",
+                title: "FILTROS",
+                reset: "RESETEAR",
+            },
+            viewColumns: {
+                title: "Mostrar Columnas",
+                titleAria: "Mostrar/Ocultar Columnas de la Tabla",
+            },
+            selectedRows: {
+                text: "fila(s) seleccionada(s)",
+                delete: "Eliminar",
+                deleteAria: "Eliminar filas seleccionadas",
+            },
+        },
     }
 
+    const [datosBeneficiosSelect, setDatosBeneficiosSelect] = useState();
+    const [beneficioSelect, setBeneficioSelect] = useState(); //Este va al back
+
+    const [datosBeneficiarios, setDatosBeneficiarios] = useState([]);
+
+    const [ventanaMod, setVentanaMod] = useState(false);
+    const [lector, setLector] = useState<number>();
 
 
+    const obtencionDatosBeneficios = async () => {
+        await axios.get("http://localhost:3001/dideco/solicitudes/listarBeneficiosMas").then((response) => {  //CAMBIAR LA DIRECCION DE LA CONSULTA
+            const datosBeneficios = response.data;
+            setDatosBeneficiosSelect(datosBeneficios);
+        })
+    }
 
+    const obtencionDatosBeneficiarios = async () => {
+        await axios.get("http://localhost:3001/dideco/solicitudes/listarBeneficiariosMas").then((response) => {  //CAMBIAR LA DIRECCION DE LA CONSULTA
+            const datosBeneficiarios = response.data;
+            setDatosBeneficiarios(datosBeneficiarios);
+        })
+    }
 
+    const seleccionBeneficio = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const opcionesSeleccionadas: any = Array.from(event.target.selectedOptions).map((option) => option.value);
+        if (opcionesSeleccionadas != null) {
+            setBeneficioSelect(opcionesSeleccionadas);
+        }
+        else {
+            console.log("El valor es null o  undefined");
+        }
+    }
+
+    const verificarBeneficio = async () => {
+        setLector(2);
+        setVentanaMod(true);
+    }
 
 
     return (
@@ -155,45 +186,54 @@ export default function ModalSoliMasAgr({ estadoModalSoliMasAgr, cambioEstadoMod
             {estadoModalSoliMasAgr &&
 
                 <div className="z-10 w-screen h-screen bg-black bg-opacity-40 top-0 left-0 fixed items-center justify-center flex">
-                    <div className="mt-[30px] modalColor bg-white w-[650px] h-[500px] relative p-2 rounded">
+                    <div className="mt-[30px] modalColor bg-white w-[550px] h-[680px] relative p-2 rounded grid grid-rows-8 grid-cols-3">
 
-                        <button className="absolute ml-[600px] mt-[-10px]" onClick={() => cambioEstadoModalSoliMasAgr(false)}><FontAwesomeIcon className="text-3xl colorX" icon={faTimes}></FontAwesomeIcon></button>
+                        <button className="absolute ml-[510px] mt-[5px] text-red-500" onClick={() => cambioEstadoModalSoliMasAgr(false)}><FontAwesomeIcon className="text-3xl colorX" icon={faTimes}></FontAwesomeIcon></button>
 
-                        <div className="mb-8 ml-[395px] mt-[30px] w-[200px] mb-[-10px]">
-                            <label className="block textColor text-lg font-bold ml-[40px]" for="Idbenesoliagr">
-                                Id Beneficio
-                            </label>
-                            <input onChange={(e) => setIdBeneficio(e.target.value)} className="mb-[-10px] inputColor shadow appearance-none border rounded w-full py-1 px-3 textColor leading-tight focus:outline-none focus:shadow-outline" id="idbenesoliagr" name="idbenesoliagr" type="number" placeholder="Id Beneficio"></input>
+                        <div className="row-start-1 row-end-1 col-start-1 col-end-4">
+                            <h1 className="text-3xl underline mt-[25px] ml-[140px] mb-[-120px text-[#427DA2]">Agregada Masiva</h1>
+                        </div>
+
+                        <div className="row-start-2 row-end-2 col-start-1 col-end-2">
+                            <h1 className="block textColor text-lg font-bold ml-[10px] text-[#427DA2]">Beneficio</h1>
+                            <select className="row-start-3 row-end-4 mx-auto rounded-t-xl rounded-b-xl h-10 w-[300px]" multiple onChange={seleccionBeneficio}>
+                                {datosBeneficiosSelect &&
+                                    //@ts-ignore
+                                    datosBeneficiosSelect.map((beneficio: any) => (
+                                        <option key={beneficio.idbeneficio} value={beneficio.idbeneficio}>{beneficio.idbeneficio}</option>
+                                    ))
+                                }
+                            </select>
                         </div>
 
 
 
-                        <div className="flex items-center justify-between absolute">
-                            <button onClick={verificarBeneficio} className="mt-[20px] ml-[415px] w-[165px] navbarColor text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-sm " type="button">
+                        <div className="row-start-2 row-end-2 col-start-3 col-end-3">
+                            <button onClick={verificarBeneficio} className="bg-[#427DA2] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-sm mt-[28px] " type="button">
                                 Ver Beneficio
                             </button>
                         </div>
 
-                        <div className="flex items-center justify-between absolute mt-[80px] ml-[380px]">
-                            <button onClick={agregarMasivo} className="navbarColor w-[240px] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-lg" type="button">
+                        
+
+
+
+
+                        <div className="row-start-3 row-end-7 col-start-1 col-end-4">
+                            <MUIDataTable data={datosBeneficiarios} columns={columnas} options={opciones} title="Beneficiarios" />
+                        </div>
+
+                        <div className="row-start-7 row-end-8 col-start-2 col-end-2">
+                            <button onClick={agregarMasivo} className="bg-[#427DA2] text-white font-bold ml-[-50px] w-[300px] py-2 px-4 rounded focus:outline-none focus:shadow-outline text-lg" type="button">
                                 Ingresar Solicitudes Masivas
                             </button>
                         </div>
 
 
 
-                        <MUIDataTable
-                            data={soliBeneficiarios}
-                            columns={columns}
-                            options={options}
-                            id="tablaBeneficiarios"
-                            className="absolute w-[370px] mt-[-70px]"
-                        />
-
-
-
-
                     </div>
+                    <RespuestaMasivas estadoRespuestaBloq={respuestaMas} cambioEstadoRespuestaBloq={setRespuestaMas}></RespuestaMasivas>
+                    <VentanaModBeneficio estadoModalBeneficioMod={ventanaMod} cambioEstadoModalBeneficioMod={setVentanaMod} idmodbeneficio={beneficioSelect} lector={lector} />
                 </div>
             }
         </>

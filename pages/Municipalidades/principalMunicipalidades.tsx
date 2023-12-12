@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 export default function menuPrincipal() {
 
     const [departamentosDes, setDepartamentosDes] = useState<number>();
-    const [usuarioo, setUsuarioo] = useState<string>();
     const [municipalidad, setMunicipalidad] = useState<string>();
     const [permisos, setPermisos] = useState<number>();
 
@@ -33,19 +32,16 @@ export default function menuPrincipal() {
             else {
                 console.log(valoresCookies["departamentoG"], "acaaaaaa 1");
                 const departa = valoresCookies["departamentoG"];
-                const usu = valoresCookies["nombreG"];
                 const muni = valoresCookies["nombreMuniG"];
                 const permisos = valoresCookies["permisosG"];
                 setDepartamentosDes(departa);
                 setPermisos(permisos);
-                setUsuarioo(usu);
                 setMunicipalidad(muni);
             }
         }
     }, [])
 
 
-    const usuario: string = usuarioo || "";
     /* const permisosAcceso = 0;*/
     const permisosDepartamentos: number = departamentosDes || 0;
     console.log(permisosDepartamentos)
@@ -60,7 +56,7 @@ export default function menuPrincipal() {
                     <div className="col-start-2 col-end-2 bg-[#427DA2] rounded-tr-[50px] rounded-bl-[50px] flex flex-col items-center justify-center ">
                         <h1 className="text-center text-white underline text-[20px] mb-[60px]">PRINCIPAL</h1>
                         <button onClick={() => { window.location.href = "./principalUsuarios" }} className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Gestor de Usuarios</button>
-                        <button className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Consultas</button>
+                        <button className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]" onClick={() => { window.location.href = "./consultas" }}>Consultas</button>
                     </div>
                     <div className="col-start-4 col-end-4 bg-[#427DA2] rounded-tr-[50px] rounded-bl-[50px] flex flex-col items-center justify-center  ">
                         <h1 className="text-center text-white underline text-[20px] mb-[60px]">DEPARTAMENTOS</h1>
@@ -77,7 +73,7 @@ export default function menuPrincipal() {
                     <div className="col-start-2 col-end-2 bg-[#427DA2] rounded-tr-[50px] rounded-bl-[50px] flex flex-col items-center justify-center ">
                         <h1 className="text-center text-white underline text-[20px] mb-[60px]">PRINCIPAL</h1>
                         <button onClick={() => { window.location.href = "./principalUsuarios" }} className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Gestor de Usuarios</button>
-                        <button className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Consultas</button>
+                        <button className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]" onClick={() => { window.location.href = "./consultas" }}>Consultas</button>
                     </div>
                     <div className="col-start-4 col-end-4 bg-[#427DA2] rounded-tr-[50px] rounded-bl-[50px]  flex flex-col items-center justify-center ">
                         <h1 className="text-center text-white underline text-[20px] mb-[60px] ">DEPARTAMENTOS</h1>
@@ -92,7 +88,7 @@ export default function menuPrincipal() {
                     <div className="col-start-2 col-end-2 bg-[#427DA2] rounded-tr-[50px] rounded-bl-[50px] flex flex-col items-center justify-center ">
                         <h1 className="text-center text-white underline text-[20px] mb-[60px]">PRINCIPAL</h1>
                         <button onClick={() => { window.location.href = "./principalUsuarios" }} className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Gestor de Usuarios</button>
-                        <button className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Consultas</button>
+                        <button onClick={() => { window.location.href = "./consultas" }} className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Consultas</button>
                     </div>
                     <div className="col-start-4 col-end-4 bg-[#427DA2] rounded-tr-[50px] rounded-bl-[50px] flex flex-col items-center justify-center   ">
                         <h1 className="text-center text-white underline text-[20px] mb-[60px] ">DEPARTAMENTOS</h1>
@@ -107,7 +103,7 @@ export default function menuPrincipal() {
                     <div className="col-start-2 col-end-2 bg-[#427DA2] rounded-tr-[50px] rounded-bl-[50px] flex flex-col items-center justify-center ">
                         <h1 className="text-center text-white underline text-[20px] mb-[60px]">PRINCIPAL</h1>
                         <button onClick={() => { window.location.href = "./principalUsuarios" }} className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Gestor de Usuarios</button>
-                        <button className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Consultas</button>
+                        <button className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]" onClick={() => { window.location.href = "./consultas" }}>Consultas</button>
                     </div>
                     <div className="col-start-4 col-end-4 bg-[#427DA2] rounded-tr-[50px] rounded-bl-[50px] flex flex-col items-center justify-center  ">
                         <h1 className="text-center text-white underline text-[20px] mb-[60px] ">DEPARTAMENTOS</h1>
@@ -122,7 +118,7 @@ export default function menuPrincipal() {
                     <div className="col-start-2 col-end-2 bg-[#427DA2] rounded-tr-[50px] rounded-bl-[50px] flex flex-col items-center justify-center ">
                         <h1 className="text-center text-white underline text-[20px] mb-[60px]">PRINCIPAL</h1>
                         <button onClick={() => { window.location.href = "./principalUsuarios" }} className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Gestor de Usuarios</button>
-                        <button className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Consultas</button>
+                        <button className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]" onClick={() => { window.location.href = "./consultas" }}>Consultas</button>
                     </div>
                     <div className="col-start-4 col-end-4 bg-[#427DA2] rounded-tr-[50px] rounded-bl-[50px]  flex flex-col items-center justify-center ">
                         <h1 className="text-center text-white underline text-[20px] mb-[60px] ">DEPARTAMENTOS</h1>
@@ -138,7 +134,7 @@ export default function menuPrincipal() {
                     <div className="col-start-2 col-end-2 bg-[#427DA2] rounded-tr-[50px] rounded-bl-[50px] flex flex-col items-center justify-center ">
                         <h1 className="text-center text-white underline text-[20px] mb-[60px]">PRINCIPAL</h1>
                         <button onClick={() => { window.location.href = "./principalUsuarios" }} className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Gestor de Usuarios</button>
-                        <button className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Consultas</button>
+                        <button className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]" onClick={() => { window.location.href = "./consultas" }}>Consultas</button>
                     </div>
                     <div className="col-start-4 col-end-4 bg-[#427DA2] rounded-tr-[50px] rounded-bl-[50px] flex flex-col items-center justify-center  ">
                         <h1 className="text-center text-white underline text-[20px] mb-[60px] ">DEPARTAMENTOS</h1>
@@ -154,7 +150,7 @@ export default function menuPrincipal() {
                     <div className="col-start-2 col-end-2 bg-[#427DA2] rounded-tr-[50px] rounded-bl-[50px] flex flex-col items-center justify-center ">
                         <h1 className="text-center text-white underline text-[20px] mb-[60px]">PRINCIPAL</h1>
                         <button onClick={() => { window.location.href = "./principalUsuarios" }} className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Gestor de Usuarios</button>
-                        <button className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]">Consultas</button>
+                        <button className="flex  items-center justify-center text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px] mb-[40px]" onClick={() => { window.location.href = "./consultas" }}>Consultas</button>
                     </div>
                     <div className="col-start-4 col-end-4 bg-[#427DA2] rounded-tr-[50px] rounded-bl-[50px] flex flex-col items-center justify-center  ">
                         <h1 className="text-center text-white underline text-[20px] mb-[60px] ">DEPARTAMENTOS</h1>
@@ -265,7 +261,7 @@ export default function menuPrincipal() {
         <>
             <div className="bg-[#427DA2] fixed inset-0">
 
-                <Navbar usuario={usuario}></Navbar>
+                <Navbar></Navbar>
 
                 <div className="p-5">
                     <h1 className="text-white text-center text-[30px] underline"><strong>MENU {municipalidad}</strong></h1>

@@ -437,7 +437,7 @@ export default function beneficios() {
                 </div>
 
 
-
+ 
 
                 <div className="row-start-2 row-end-2 col-start-2 col-end-3 grid grid-rows-4">
                     <button className="row-start-2 row-end-4 mx-auto text-white bg-[#003352] w-3/4 rounded-tr-[50px] rounded-bl-[50px]" onClick={() => creacionBeneficio()}>CREAR</button>

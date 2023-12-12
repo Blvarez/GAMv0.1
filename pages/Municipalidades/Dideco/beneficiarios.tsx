@@ -7,13 +7,13 @@ import { IconButton } from "@mui/material";
 import { Delete } from "@mui/icons-material";
 import { Edit } from "@mui/icons-material";
 import InfoIcon from '@mui/icons-material/Info';
-import ModalCreacion from "../../../components/Alertas/Municipalidad/Dideco/gestionBeneficios/creacion/creacion";
+import RespuestaCreacionBeneficiario from "../../../components/Alertas/Municipalidad/Dideco/gestionBeneficios/creacion/respuestaCreacionBeneficiario";
 import VentanaModBeneficiario from "../../../components/Alertas/Municipalidad/Dideco/gestionBeneficios/modificacion/Modalbeneficiariomod";
+import EliminacionBeneficiarios from "../../../components/Alertas/Municipalidad/Dideco/gestionBeneficios/eliminacion/beneficiario";
 
 export default function beneficiarios() {
 
 
-    const usuario = "";
     const permisos = 13;
 
     const [rut, setRut] = useState<string>();
@@ -35,12 +35,15 @@ export default function beneficiarios() {
 
     const [ventanaCreacion, setVentanaCreacion] = useState(false);
     const [error, setError] = useState<any>();
+    const [tipoDato, setTipoDato] = useState<number>(0);
 
 
     const [ventanaModificacion, setVentanaModificacion] = useState(false);
 
     const [rutSelect, setRutSelect] = useState<string>();
     const [lector, setLector] = useState<any>();
+
+    const [estadoEliminacion, setEstadoEliminacion] = useState(false);
 
 
 
@@ -98,13 +101,17 @@ export default function beneficiarios() {
                     const mensaje = response.data.message;
                     if (mensaje == "BC") { //BENEFICIARIO BC
                         setError(1);
+                        setTipoDato(3);
                         setVentanaCreacion(true);
                     }
-                    else if (mensaje == "DI") { //DATOS INCORRECTOS ///CREAR ALERTAAAAA
-
+                    else if (mensaje == "FECB") { //DATOS INCORRECTOS ///CREAR ALERTAAAAA
+                        setTipoDato(1);
+                        setError(3);
+                        setVentanaCreacion(true);
                     }
                     else if (mensaje == "BYE") { //BENEFICIARIO YA EXISTE
                         setError(2)
+                        setTipoDato(3);
                         setVentanaCreacion(true);
                     }
                 })
@@ -280,8 +287,8 @@ export default function beneficiarios() {
         selectableRows: "none",
         print: false,
         download: false,
-        rowsPerPage: 10,
-        rowsPerPageOptions: [10],
+        rowsPerPage: 5,
+        rowsPerPageOptions: [5],
         viewColumns: false,
         filter: true, textLabels: {
             body: {
@@ -321,13 +328,15 @@ export default function beneficiarios() {
     //Funcion Mostrar Beneficio
     function mostrarBeneficiario(rutPersona: string) {
         setRutSelect(rutPersona);
-        setLector(2);
+        setLector(1);
         setVentanaModificacion(true);
         console.log("Esta sera la funcion paara mostrar informacion del Beneficiario", rutPersona);
     }
 
     //Funcion Eliminar Municipalidad
     function eliminarBeneficiario(rutPersona: string) {
+        setRutSelect(rutPersona);
+        setEstadoEliminacion(true);
         console.log("Esta sera la funcion eliminar", rutPersona);
     }
 
@@ -335,7 +344,7 @@ export default function beneficiarios() {
     //Funcion Modificar Municipalidad
     function modificarBeneficiario(rutPersona: string) {
         setRutSelect(rutPersona);
-        setLector(1);
+        setLector(2);
         setVentanaModificacion(true);
         console.log("Esta sera la funcion modificar", rutPersona);
     }
@@ -353,6 +362,38 @@ export default function beneficiarios() {
     }, []);
 
 
+    const [errorCorreo, setErrorCorreo] = useState<string | null>(null);
+    const [errorRut, setErrorRut] = useState<string | null>(null);
+
+
+    const validarCorreo = (inputCorreo: string) => {
+        const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (regexCorreo.test(inputCorreo)) {
+            setCorreo(inputCorreo);
+            setErrorCorreo(null);
+        } else {
+            setCorreo("");
+            setErrorCorreo("¡Por favor, ingrese una dirección de correo válida!");
+        }
+    };
+
+    const validarRut = (inputRut: string) => {
+        // Elimina puntos del RUT
+        const rutSinFormato = inputRut.replace(/\./g, "");
+    
+        // Verifica que el RUT tenga el formato correcto
+        const regexRut = /^(\d{1,9}-[\dkK])$/;
+    
+        if (regexRut.test(rutSinFormato)) {
+          setRut(rutSinFormato);
+          setErrorRut(null);
+        } else {
+          setRut("");
+          setErrorRut("¡Por favor, ingrese un RUT chileno válido!");
+        }
+      };
+
 
 
     let varianteVistaTabka = null;
@@ -368,17 +409,18 @@ export default function beneficiarios() {
 
                 <div className="row-start-1 row-end-1 grid grid-rows-4">
                     <h1 className="row-start-2 row-end-3 mx-auto text-white">Rut</h1>
-                    <input className="row-start-3 row-end-4 w-1/2 mx-auto rounded-t-xl rounded-b-xl" onChange={(e) => setRut(e.target.value)}></input>
+                    <input className="row-start-3 row-end-4 w-1/2 mx-auto rounded-t-xl rounded-b-xl" type="text" onChange={(e) => validarRut(e.target.value)} />
+                    {errorRut && <p className="text-red-500 ml-[25px]">{errorRut}</p>}
                 </div>
 
                 <div className="row-start-1 row-end-1 col-start-2 col-end-2 grid grid-rows-4 w-full">
                     <h1 className="row-start-2 row-end-3 mx-auto text-white">Nombre Completo</h1>
-                    <input className="row-start-3 row-end-4 mx-auto rounded-t-xl rounded-b-xl w-[300px]" onChange={(e) => setNombre(e.target.value)}></input>
+                    <input className="row-start-3 row-end-4 mx-auto rounded-t-xl rounded-b-xl w-[300px]" type="text" maxLength={120} onChange={(e) => setNombre(e.target.value)}></input>
                 </div>
 
                 <div className="row-start-1 row-end-1 col-start-3 col-end-3 grid grid-rows-4">
                     <h1 className="row-start-2 row-end-3 mx-auto text-white">Edad</h1>
-                    <input className="row-start-3 row-end-4 w-1/2 mx-auto rounded-t-xl rounded-b-xl" onChange={(e) => setEdad(Number(e.target.value))}></input>
+                    <input className="row-start-3 row-end-4 w-1/2 mx-auto rounded-t-xl rounded-b-xl" type="number" min="1" max="120" onChange={(e) => setEdad(Number(e.target.value))}></input>
                 </div>
 
                 <div className="row-start-1 row-end-1 col-start-4 col-end-5 grid grid-rows-4 mt-[30px]">
@@ -389,22 +431,24 @@ export default function beneficiarios() {
 
                 <div className="row-start-2 row-end-2 grid grid-rows-4">
                     <h1 className="row-start-2 row-end-3 mx-auto text-white">Telefono</h1>
-                    <input className="row-start-3 row-end-4 w-1/2 mx-auto rounded-t-xl rounded-b-xl" onChange={(e) => setTelefono(Number(e.target.value))}></input>
+                    <input className="row-start-3 row-end-4 w-1/2 mx-auto rounded-t-xl rounded-b-xl" type="number" min="111111111" max="999999999" onChange={(e) => setTelefono(Number(e.target.value))}></input>
                 </div>
 
                 <div className="row-start-2 row-end-2 col-start-2 col-end-2 grid grid-rows-4">
                     <h1 className="row-start-2 row-end-3 mx-auto text-white">Correo</h1>
-                    <input className="row-start-3 row-end-4 w-[300px] mx-auto rounded-t-xl rounded-b-xl" onChange={(e) => setCorreo(e.target.value)}></input>
+                    <input
+                        className="row-start-3 row-end-4 w-[300px] mx-auto rounded-t-xl rounded-b-xl" type="text" onChange={(e) => validarCorreo(e.target.value)} />
+                    {errorCorreo && <p className="text-red-500">{errorCorreo}</p>}
                 </div>
 
                 <div className="row-start-2 row-end-2 col-start-3 col-end-3 grid grid-rows-4">
                     <h1 className="row-start-2 row-end-3 mx-auto text-white">Porcentaje RH</h1>
-                    <input className="row-start-3 row-end-4 w-1/2 mx-auto rounded-t-xl rounded-b-xl" onChange={(e) => setPorcentaje(Number(e.target.value))}></input>
+                    <input className="row-start-3 row-end-4 w-1/2 mx-auto rounded-t-xl rounded-b-xl" type="number" min="10" max="100" step="10" onChange={(e) => setPorcentaje(Number(e.target.value))}></input>
                 </div>
 
                 <div className="row-start-2 row-end-2 col-start-4 col-end-4 grid grid-rows-4">
                     <h1 className="row-start-2 row-end-3 mx-auto text-white">Direccion</h1>
-                    <input className="row-start-3 row-end-4 mx-auto rounded-t-xl rounded-b-xl w-[300px]" onChange={(e) => setDireccion(e.target.value)}></input>
+                    <input className="row-start-3 row-end-4 mx-auto rounded-t-xl rounded-b-xl w-[300px]" type="text" maxLength={100} onChange={(e) => setDireccion(e.target.value)}></input>
                 </div>
 
 
@@ -440,13 +484,13 @@ export default function beneficiarios() {
 
 
 
-
+ 
 
     return (
         <>
             <div className="bg-[#427DA2] fixed inset-0">
 
-                <Navbar usuario={usuario}></Navbar>
+                <Navbar></Navbar>
 
                 <div className="p-5">
                     <h1 className="text-white text-center text-[30px] underline"><strong>GESTION DE BENEFICIARIOS</strong></h1>
@@ -461,8 +505,9 @@ export default function beneficiarios() {
                     </div>
                 </div>
 
-                <ModalCreacion datoExtra={rut} tipoDato={2} estadoCreacion={ventanaCreacion} cambioEstadoCreacion={setVentanaCreacion} error={error} />
+                <RespuestaCreacionBeneficiario datoExtra={rut} tipoDato={tipoDato} estadoCreacion={ventanaCreacion} cambioEstadoCreacion={setVentanaCreacion} error={error}/>
                 <VentanaModBeneficiario estadoModalBeneficiarioMod={ventanaModificacion} cambioEstadoModalBeneficiarioMod={setVentanaModificacion} rutMod={rutSelect} lector={lector} />
+                <EliminacionBeneficiarios estadoModalBeneficiarioEli={estadoEliminacion} cambioestadoModalBeneficiarioEli={setEstadoEliminacion} rutBeneficiario={rutSelect} />
             </div>
         </>
     )

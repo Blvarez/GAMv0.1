@@ -8,6 +8,9 @@ import conexion from "../../../../db/conexion";
 import { Request, Response } from "express";
 
 
+
+
+
 //@ts-ignore
 exports.listarBeneficiariosPersonas = (req: Request, res: Response) => {//MUESTRA LOS BENEFICIARIOS/PERSONA EN UNA LISTA
 
@@ -72,36 +75,75 @@ exports.agregarBeneficiario = (req: Request, res: Response) => {//AGREGA UN BENE
 
     const agregarPersona = "INSERT INTO persona(rutpersona, nombrecompleto, edadpersona, direccionpersona, telefonopersona, correopersona) VALUES (?, ?, ?, ?, ?, ?)";
 
-    //@ts-ignore
-    conexion.query(verificacionPersona, [rutBeneficiario], (err, result) => {
-        if (err) { throw err; }
 
-        var key, count = 0;
-        for (key in result) {
-            if (result.hasOwnProperty(key)) { //VERIFICO SI OBTUVO RESULTADOS
-                count++;
+    const validarCorreo = (inputCorreo: string) => {
+        const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regexCorreo.test(inputCorreo);
+    };
+
+    const validarRut = (inputRut: string) => {
+        const rutSinFormato = inputRut.replace(/\./g, '');
+        const regexRut = /^(\d{1,9}-[\dkK])$/;
+        return regexRut.test(rutSinFormato);
+    };
+
+
+    if (validarRut(rut) == false || validarCorreo(correoBeneficiario) == false || validarRut(rutBeneficiario) == false) {
+        const mensajeError = "FECB";
+        res.json({message: mensajeError});
+    }
+    else {
+        //@ts-ignore
+        conexion.query(verificacionPersona, [rutBeneficiario], (err, result) => {
+            if (err) { throw err; }
+
+            var key, count = 0;
+            for (key in result) {
+                if (result.hasOwnProperty(key)) { //VERIFICO SI OBTUVO RESULTADOS
+                    count++;
+                }
             }
-        }
- 
-        if (count > 0) {
-            //@ts-ignore
-            conexion.query(verificarBeneficiario, [rutBeneficiario], (err1, result1) => {
 
-                if (err1) { throw err1; }
+            if (count > 0) {
+                //@ts-ignore
+                conexion.query(verificarBeneficiario, [rutBeneficiario], (err1, result1) => {
 
-                var key1, count1 = 0;
-                for (key1 in result1) {
-                    if (result1.hasOwnProperty(key1)) { //VERIFICO SI OBTUVO RESULTADOS
-                        count1++;
+                    if (err1) { throw err1; }
+
+                    var key1, count1 = 0;
+                    for (key1 in result1) {
+                        if (result1.hasOwnProperty(key1)) { //VERIFICO SI OBTUVO RESULTADOS
+                            count1++;
+                        }
                     }
-                }
 
-                if (count1 > 0) {
-                    const mensajeBeneficiarioYaExistente = "BYE";
-                    res.json({ message: mensajeBeneficiarioYaExistente });
-                }
+                    if (count1 > 0) {
+                        const mensajeBeneficiarioYaExistente = "BYE";
+                        res.json({ message: mensajeBeneficiarioYaExistente });
+                    }
 
-                else if (count1 == 0) {
+                    else if (count1 == 0) {
+                        //@ts-ignore
+                        conexion.query(queryAgregarPDF, [rutBeneficiario, porcentajeRH, nombre, tipo, Buffer.from(archivo)], (err2, result2) => {
+
+
+                            if (err2) { throw err2; }
+
+                            const mensajeBeneficiarioCreado = "BC";
+                            res.json({ message: mensajeBeneficiarioCreado });
+
+                            console.log("PDF agregado");
+
+                        })
+                    }
+
+                })
+            }
+            else if (count == 0) {
+                //@ts-ignore
+                conexion.query(agregarPersona, [rut, nombresBeneficiario, edadBeneficiario, direccionBeneficiario, telefonoBeneficiario, correoBeneficiario], (err3, result3) => {
+
+                    if (err3) { throw err3; }
                     //@ts-ignore
                     conexion.query(queryAgregarPDF, [rutBeneficiario, porcentajeRH, nombre, tipo, Buffer.from(archivo)], (err2, result2) => {
 
@@ -114,30 +156,12 @@ exports.agregarBeneficiario = (req: Request, res: Response) => {//AGREGA UN BENE
                         console.log("PDF agregado");
 
                     })
-                }
-
-            })
-        }
-        else if (count == 0) {
-            //@ts-ignore
-            conexion.query(agregarPersona, [rut, nombresBeneficiario, edadBeneficiario, direccionBeneficiario, telefonoBeneficiario, correoBeneficiario], (err3, result3) => {
-
-                if (err3) { throw err3; }
-                //@ts-ignore
-                conexion.query(queryAgregarPDF, [rutBeneficiario, porcentajeRH, nombre, tipo, Buffer.from(archivo)], (err2, result2) => {
-
-
-                    if (err2) { throw err2; }
-
-                    const mensajeBeneficiarioCreado = "BC";
-                    res.json({ message: mensajeBeneficiarioCreado });
-
-                    console.log("PDF agregado");
-
                 })
-            })
-        }
-    })
+            }
+        })
+    }
+
+
 }
 
 
@@ -185,13 +209,12 @@ exports.listarModificacionBeneficiario = (req: Request, res: Response) => { //LI
 
 exports.eliminarBeneficiario = (req: Request, res: Response) => {
 
-    const rutBeneficiario = req.body.rut;
+    const rutBeneficiario = req.body.rutBeneficiario;
 
     const queryEliminarBeneficiario = "DELETE FROM beneficiario WHERE rutbeneficiario = ?";
-    const queryEliminarPersona = "DELETE FROM persona WHERE rut = ?";
-    const queryEliminarPdf = "DELETE FROM pdfcartola WHERE rutbeneficiariopdf = ?";
+    const queryEliminarPersona = "DELETE FROM persona WHERE rutpersona = ?";
 
-    const queryConsultarSolicitudes = "SELECT * FROM solicitud WHERE rutbeneficiariosol = ?";
+    const queryConsultarSolicitudes = "SELECT * FROM solicitudes WHERE rutbeneficiariosol = ?";
 
     //@ts-ignore
     conexion.query(queryConsultarSolicitudes, [rutBeneficiario], (err2, result2) => {
@@ -208,25 +231,19 @@ exports.eliminarBeneficiario = (req: Request, res: Response) => {
 
         if (count2 == 0) {
             //@ts-ignore
-            conexion.query(queryEliminarPdf, [rutBeneficiario], (err0, result0) => {
+            conexion.query(queryEliminarBeneficiario, [rutBeneficiario], (err, result) => {
 
-                if (err0) { throw err0; }
-
+                if (err) { throw err; }
                 //@ts-ignore
-                conexion.query(queryEliminarBeneficiario, [rutBeneficiario], (err, result) => {
+                conexion.query(queryEliminarPersona, [rutBeneficiario], (err1, result1) => {
 
-                    if (err) { throw err; }
-                    //@ts-ignore
-                    conexion.query(queryEliminarPersona, [rutBeneficiario], (err1, result1) => {
+                    if (err1) { throw err1; }
 
-                        if (err1) { throw err1; }
-
-                        const mensajeEliminadoConExito = "ECE";
-                        res.json({ message: mensajeEliminadoConExito });
-                    })
+                    const mensajeEliminadoConExito = "ECE";
+                    res.json({ message: mensajeEliminadoConExito });
                 })
-
             })
+
 
         }
 

@@ -105,7 +105,7 @@ export default function VentanaModBeneficio({ estadoModalBeneficioMod, cambioEst
                 <label className="block textColor text-lg font-bold" htmlFor="EstadoBeneficio">
                     Stock
                 </label>
-                <input value={stockBeneMod} onChange={(e) => setStockBeneMod(e.target.value)} className="mb-n10 inputColor shadow appearance-none border rounded w-full py-1 px-3 textColor mb-3 leading-tight focus:outline-none focus:shadow-outline" id="nomtumod" name="nomtumod" type="number" min="1" max="9999999999" placeholder="Stock"></input>
+                <input defaultValue={stockBeneMod} onChange={(e) => setStockBeneMod(e.target.value)} className="mb-n10 inputColor shadow appearance-none border rounded w-full py-1 px-3 textColor mb-3 leading-tight focus:outline-none focus:shadow-outline" id="nomtumod" name="nomtumod" type="number" min="1" max="9999999999" placeholder="Stock"></input>
             </div>
         )
         botonModificar = (
@@ -128,7 +128,7 @@ export default function VentanaModBeneficio({ estadoModalBeneficioMod, cambioEst
                 <label className="block textColor text-lg font-bold" htmlFor="EstadoBeneficio">
                     Stock
                 </label>
-                <input disabled value={stockBeneMod} onChange={(e) => setStockBeneMod(e.target.value)} className="mb-n10 inputColor shadow appearance-none border rounded w-full py-1 px-3 textColor mb-3 leading-tight focus:outline-none focus:shadow-outline" id="nomtumod" name="nomtumod" type="number" min="1" max="9999999999" placeholder="Nombre Tipo Usuario"></input>
+                <input disabled defaultValue={stockBeneMod} onChange={(e) => setStockBeneMod(e.target.value)} className="mb-n10 inputColor shadow appearance-none border rounded w-full py-1 px-3 textColor mb-3 leading-tight focus:outline-none focus:shadow-outline" id="nomtumod" name="nomtumod" type="number" min="1" max="9999999999" placeholder="Nombre Tipo Usuario"></input>
             </div>
         )
         tituloModificar = (
@@ -187,7 +187,7 @@ export default function VentanaModBeneficio({ estadoModalBeneficioMod, cambioEst
                                 <label className="block textColor text-lg font-bold" htmlFor="CantidadPAnual">
                                     Tipo de Estado Solicitud
                                 </label>
-                                <input disabled value={estadoBeneficio} className="mb-n10 inputColor shadow appearance-none border rounded w-full py-1 px-3 textColor mb-3 leading-tight focus:outline-none focus:shadow-outline" id="nomtumod" name="nomtumod" type="text" placeholder="Nombre Tipo Usuario"></input>
+                                <input disabled value={estadoBeneficio} onChange={(e) => setEstadoBeneficio(e.target.value)} className="mb-n10 inputColor shadow appearance-none border rounded w-full py-1 px-3 textColor mb-3 leading-tight focus:outline-none focus:shadow-outline" id="nomtumod" name="nomtumod" type="text" placeholder="Nombre Tipo Usuario"></input>
                             </div>
 
                         </form>

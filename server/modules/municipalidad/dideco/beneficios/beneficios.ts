@@ -100,10 +100,10 @@ exports.creacionBeneficios = async (req: Request, res: Response) => {
     if (stockBeneficio <= 0 || stockBeneficio == undefined || stockBeneficio == null) {
 
         const mensaje = "EID";
-        res.json({message: mensaje});
+        res.json({ message: mensaje });
     }
-    
-    else{
+
+    else {
         conexion.query(queryBusquedaTipoBeneficio, [tipoBeneficio], (err, resultadoTipoBeneficio) => {
             if (err) { throw err; }
             else {
@@ -266,69 +266,57 @@ exports.modificiarBeneficio = async (req: Request, res: Response) => {
 
 }
 
-//@ts-ignore
+//@ts-ignore  
 exports.listarModificacionBeneficio = async (req: Request, res: Response) => {
 
     const idBeneficio: string = req.body.idbene;
 
-    const iniciales = idBeneficio.substring(0, 2);
+    const consultarBeneficio :string = "SELECT beneficio.estadobeneficio, beneficio.stockbeneficio, tipobeneficio.nombretipobeneficio, tipobeneficio.descripciontipobeneficio, tipobeneficio.cantidadAnualPersona FROM beneficio JOIN tipobeneficio ON beneficio.idtipobeneficio =  tipobeneficio.idtipobeneficio WHERE beneficio.idbeneficio = ?";
 
-
-
-    const consultarBeneficio = "SELECT * FROM beneficio";
-    //@ts-ignore
-    const consultarTipoBeneficio = "SELECT * FROM tipobeneficio WHERE incialestipobeneficio = ?";
-
-
-    conexion.query(consultarBeneficio, [idBeneficio], (err, infoBeneficio) => {
-        if (err) { throw err; }
-
-        else {
-
-            const idbene: string = infoBeneficio[0].idbeneficio;
-
-            //@ts-ignore
-            const caracteresIniciales = idbene.substring(0, 2);
-            //@ts-ignore
-            const stock: number = infoBeneficio[0].stockbeneficio;
-            const estadoBeneficio = infoBeneficio[0].estadobeneficio;
-            //@ts-ignore
-            let nombreEstado: string = "";
-            if (estadoBeneficio == 1) {
-                nombreEstado = "Por Postulacion";
-            }
-            else if (estadoBeneficio == 2) {
-                nombreEstado = "Por Entrega Inmediata";
-            }
-
-            conexion.query(consultarTipoBeneficio, [iniciales], (err2, infoTipoBeneficio) => {
-
-                if (err2) { throw err2; }
-                else {
-
-                    const datosTB = infoTipoBeneficio[0];
-                    const nombreTB = datosTB.nombretipobeneficio;
-                    const descripcionTB = datosTB.descripciontipobeneficio;
-                    const cantidadPorPersona = datosTB.cantidadAnualPersona;
-
-                    console.log(datosTB, nombreTB, descripcionTB, cantidadPorPersona, "DAtos del beneficio")
-
-                    let nombreCantidad: string = "";
-
-                    if (cantidadPorPersona == 3) {
-                        nombreCantidad = "Cuatrimestral";
-                    }
-                    else if (cantidadPorPersona == 12) {
-                        nombreCantidad = "Mensual"
-                    }
-
-
-                    res.json({ nombreTipoBeneficio: nombreTB, descripcionTipoBeneficio: descripcionTB, stockBeneficio: stock, cantidadA: nombreCantidad, estadoBeneObtencion: nombreEstado });
-                }
-            })
-
+    conexion.query(consultarBeneficio, [idBeneficio], (err, result) => {
+        if (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Error al consultar el beneficio' });
+            return;
         }
-    })
 
+        console.log(result);
+        if (result.length === 0) {
+            res.status(404).json({ error: 'Beneficio no encontrado' });
+            return;
+        }
+
+        const beneficio = result[0];
+        const stock = beneficio.stockbeneficio;
+        const estadoBeneficio = beneficio.estadobeneficio;
+        let nombreEstado = '';
+
+        if (estadoBeneficio == 1) {
+            nombreEstado = 'Por Postulacion';
+        } else if (estadoBeneficio == 2) {
+            nombreEstado = 'Por Entrega Inmediata';
+        }
+
+        const nombreTB = beneficio.nombretipobeneficio;
+        const descripcionTB = beneficio.descripciontipobeneficio;
+        const cantidadPorPersona = beneficio.cantidadAnualPersona;
+
+        let nombreCantidad = '';
+
+        if (cantidadPorPersona == 3) {
+            nombreCantidad = 'Cuatrimestral';
+        } else if (cantidadPorPersona == 12) {
+            nombreCantidad = 'Mensual';
+        }
+
+        res.json({
+            nombreTipoBeneficio: nombreTB,
+            descripcionTipoBeneficio: descripcionTB,
+            stockBeneficio: stock,
+            cantidadA: nombreCantidad,
+            estadoBeneObtencion: nombreEstado,
+        });
+    });
 
 }
+ 
