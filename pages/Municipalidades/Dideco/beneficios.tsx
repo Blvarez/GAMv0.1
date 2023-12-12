@@ -429,7 +429,7 @@ export default function beneficios() {
                         <option value={1}>Postulacion</option>
                         <option value={2}>Entrega Inmediata</option>
                     </select>
-                </div>
+                </div>  
 
                 <div className="row-start-1 row-end-1 col-start-3 col-end-3 grid grid-rows-4">
                     <h1 className="row-start-2 row-end-3 mx-auto text-white">Stock</h1>
