@@ -153,7 +153,7 @@ exports.modificarCons = async(req: Request, res: Response) => {
     const id = req.body.id;
     const estado = req.body.estado;
     const resp = req.body.respu;
-
+ 
 
     const hoyA = new Date();
     const fechaHoy = hoyA.getFullYear() + "-" + (hoyA.getMonth() + 1) + "-" + hoyA.getDate();
